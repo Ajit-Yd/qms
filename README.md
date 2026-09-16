@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# QMS — Quality Management System
 
-## Getting Started
+A full-stack quality management app: teams track work records (Documents, CAPAs, Non-conformances, Audits, Training) through an approval workflow, manage committees and tasks, and get notified in-app and by email.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, Turbopack) + React 19 + TypeScript strict
+- **Prisma 7** + **Neon PostgreSQL** (`@prisma/adapter-pg`)
+- **NextAuth.js v4** (Credentials, JWT sessions)
+- **Resend** (transactional email)
+- **Tailwind v4**
+
+## Repository layout
+
+| Path | Purpose |
+|---|---|
+| `app/` | App Router pages + `/api/*` route handlers |
+| `src/lib/` | Business logic: record API, permissions, email, api-auth, succession |
+| `lib/` | App-shared: seed org data, client cache, client-safe permission re-exports |
+| `components/` | Shared React UI (module core, dashboard, committees, forms) |
+| `prisma/` | Schema, migrations, seed script |
+| `proxy.ts` | Auth gate (Next 16 proxy) — redirects unauthenticated users to `/login` |
+
+Five record modules (documents, capas, nonconformances, audits, training) are driven by one shared implementation parameterized by `ModuleKey` — see `src/lib/qms-record-api.ts` and `src/lib/module-route-factory.ts`.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx prisma generate --config prisma.config.ts
+npm run dev          # dev server at http://localhost:3000
+npm run build        # production build
+npm start            # serve production build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Set env vars in `.env.local` (see `.env.local.example`):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+DATABASE_URL=postgresql://...
+NEXTAUTH_SECRET=<32+ chars>
+NEXTAUTH_URL=http://localhost:3000
+RESEND_API_KEY=re_...        # optional — enables email
+RESEND_FROM_EMAIL="QMS Notifications <no-reply@yourdomain.com>"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Seed data
 
-## Learn More
+```bash
+npm run prisma:seed          # DESTRUCTIVE — wipes DB, reloads demo data
+```
 
-To learn more about Next.js, take a look at the following resources:
+The seed creates an org tree (`Director → Deputy Director → Leads → Owners → staff`), sample records for every module, committees, tasks, history, notifications, and distinct login credentials (printed on success).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Verification
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npx tsc --noEmit
+npx eslint .
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployment checklist: see `DEPLOY.md`.
