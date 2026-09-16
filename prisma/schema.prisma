@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id          String        @id @default(cuid())
+  name        String
+  email       String?       @unique
+  passwordHash String?
+  roleTitle   String
+  reportsTo   String?
+  active      Boolean       @default(true)
+  canManageCommittees Boolean @default(false)
+  passwordResetTokens PasswordResetToken[]
+  reportsToProfile Profile? @relation("ProfileReportsTo", fields: [reportsTo], references: [id], onDelete: SetNull)
+  subordinates Profile[]    @relation("ProfileReportsTo")
+  createdAt   DateTime      @default(now())
+
+  documentAssignments       Document[]      @relation("DocumentAssignedTo")
+  capaAssignments           Capa[]          @relation("CapaAssignedTo")
+  nonconformanceAssignments Nonconformance[] @relation("NonconformanceAssignedTo")
+  auditAssignments          Audit[]         @relation("AuditAssignedTo")
+  trainingAssignments       Training[]      @relation("TrainingAssignedTo")
+  
+  committeeCreations     Committee[]     @relation("CommitteeCreatedBy")
+  committeeMemberships   CommitteeMembership[]
+  committeeTaskAssignments CommitteeTask[] @relation("CommitteeTaskAssignedTo")
+  committeeTaskAssignedBy  CommitteeTask[] @relation("CommitteeTaskAssignedBy")
+
+  @@index([reportsTo])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  assignedTo String
+  assigned  Profile  @relation("DocumentAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  status    String
+  revision  String
+  updated   DateTime @default(now())
+  deletedAt DateTime?
+
+  @@index([assignedTo])
+  @@index([deletedAt])
+}
+
+model Capa {
+  id          String    @id @default(cuid())
+  title       String
+  assignedTo  String
+  assigned    Profile   @relation("CapaAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  priority    String
+  status      String
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+
+  @@index([assignedTo])
+  @@index([deletedAt])
+}
+
+model Nonconformance {
+  id          String    @id @default(cuid())
+  title       String
+  assignedTo  String
+  assigned    Profile   @relation("NonconformanceAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  source      String
+  severity    String
+  status      String
+  date        DateTime  @default(now())
+  deletedAt   DateTime?
+
+  @@index([assignedTo])
+  @@index([deletedAt])
+}
+
+model Audit {
+  id          String    @id @default(cuid())
+  title       String
+  assignedTo  String
+  assigned    Profile   @relation("AuditAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  status      String
+  date        DateTime  @default(now())
+  deletedAt   DateTime?
+
+  @@index([assignedTo])
+  @@index([deletedAt])
+}
+
+model Training {
+  id          String    @id @default(cuid())
+  employee    String
+  course      String
+  status      String
+  dueDate     DateTime?
+  assignedTo  String
+  assigned    Profile   @relation("TrainingAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  deletedAt   DateTime?
+
+  @@index([assignedTo])
+  @@index([deletedAt])
+}
+
+model Committee {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdBy   String
+  createdByProfile Profile @relation("CommitteeCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  createdAt   DateTime @default(now())
+
+  memberships CommitteeMembership[]
+  tasks       CommitteeTask[]
+
+  @@index([createdBy])
+}
+
+model CommitteeMembership {
+  id                String   @id @default(cuid())
+  committeeId       String
+  committee         Committee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
+  profileId         String
+  profile           Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  roleInCommittee   String   @default("member") // "head" or "member"
+  joinedAt          DateTime @default(now())
+
+  @@unique([committeeId, profileId])
+  @@index([committeeId])
+  @@index([profileId])
+}
+
+model CommitteeTask {
+  id          String   @id @default(cuid())
+  committeeId String
+  committee   Committee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  assignedTo  String
+  assignedToProfile Profile @relation("CommitteeTaskAssignedTo", fields: [assignedTo], references: [id], onDelete: Restrict)
+  assignedBy  String
+  assignedByProfile Profile @relation("CommitteeTaskAssignedBy", fields: [assignedBy], references: [id], onDelete: Restrict)
+  status      String   @default("assigned") // "assigned", "in_progress", "submitted", "approved"
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([committeeId])
+  @@index([assignedTo])
+  @@index([assignedBy])
+}
+
+model RecordHistory {
+  id          String   @id @default(cuid())
+  recordType  String
+  recordId    String
+  fromStatus  String?
+  toStatus    String
+  changedBy   String
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  @@index([recordType, recordId])
+  @@index([changedBy])
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  recordType String
+  recordId   String
+  authorId   String
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([recordType, recordId])
+  @@index([authorId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  profileId String
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([profileId])
+  @@index([expiresAt])
+}
