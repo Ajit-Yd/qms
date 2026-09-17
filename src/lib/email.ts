@@ -46,26 +46,40 @@ function getEmailSubject(type: EmailType, recordTitle: string): string {
   }
 }
 
+function escapeHtml(value: string): string {
+  return String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]!));
+}
+
+function safeUrl(value: string): string {
+  const s = String(value);
+  return s.startsWith("/") || s.startsWith("http://") || s.startsWith("https://") ? escapeHtml(s) : "#";
+}
+
 function getEmailBody(payload: EmailPayload, recipientName: string): string {
   const { type, senderName, recordTitle, dueDate, recordUrl, message } = payload;
+  const escRecipient = escapeHtml(recipientName);
+  const escSender = escapeHtml(senderName);
+  const escTitle = escapeHtml(recordTitle);
+  const escMsg = message ? escapeHtml(message) : "";
+  const escUrl = safeUrl(recordUrl);
   let content = "";
 
   switch (type) {
     case "task_assigned":
-      content = `<p>Hi ${recipientName},</p><p><strong>${senderName}</strong> has assigned a task to you:</p><h3>${recordTitle}</h3>${message ? `<p><strong>Details:</strong> ${message}</p>` : ""}${dueDate ? `<p><strong>Due Date:</strong> ${new Date(dueDate).toLocaleDateString()}</p>` : ""}<p><a href="${recordUrl}">View Task</a></p>`;
+      content = `<p>Hi ${escRecipient},</p><p><strong>${escSender}</strong> has assigned a task to you:</p><h3>${escTitle}</h3>${escMsg ? `<p><strong>Details:</strong> ${escMsg}</p>` : ""}${dueDate ? `<p><strong>Due Date:</strong> ${escapeHtml(new Date(dueDate).toLocaleDateString())}</p>` : ""}<p><a href="${escUrl}">View Task</a></p>`;
       break;
     case "superior_assignment":
-      content = `<p>Hi ${recipientName},</p><p><strong>${senderName}</strong> has assigned you the following work:</p><h3>${recordTitle}</h3>${message ? `<p><strong>Details:</strong> ${message}</p>` : ""}<p><a href="${recordUrl}">View Assignment</a></p>`;
+      content = `<p>Hi ${escRecipient},</p><p><strong>${escSender}</strong> has assigned you the following work:</p><h3>${escTitle}</h3>${escMsg ? `<p><strong>Details:</strong> ${escMsg}</p>` : ""}<p><a href="${escUrl}">View Assignment</a></p>`;
       break;
     case "approval_needed":
     case "submitted_for_review":
-      content = `<p>Hi ${recipientName},</p><p>Your approval is needed for the following:</p><h3>${recordTitle}</h3><p><a href="${recordUrl}">Review & Approve</a></p>`;
+      content = `<p>Hi ${escRecipient},</p><p>Your approval is needed for the following:</p><h3>${escTitle}</h3><p><a href="${escUrl}">Review & Approve</a></p>`;
       break;
     case "approved":
-      content = `<p>Hi ${recipientName},</p><p><strong>${senderName}</strong> has approved:</p><h3>${recordTitle}</h3><p><a href="${recordUrl}">View Details</a></p>`;
+      content = `<p>Hi ${escRecipient},</p><p><strong>${escSender}</strong> has approved:</p><h3>${escTitle}</h3><p><a href="${escUrl}">View Details</a></p>`;
       break;
     case "revision_needed":
-      content = `<p>Hi ${recipientName},</p><p><strong>${senderName}</strong> has requested revisions for:</p><h3>${recordTitle}</h3>${message ? `<p><strong>Feedback:</strong> ${message}</p>` : ""}<p><a href="${recordUrl}">Make Revisions</a></p>`;
+      content = `<p>Hi ${escRecipient},</p><p><strong>${escSender}</strong> has requested revisions for:</p><h3>${escTitle}</h3>${escMsg ? `<p><strong>Feedback:</strong> ${escMsg}</p>` : ""}<p><a href="${escUrl}">Make Revisions</a></p>`;
       break;
   }
 

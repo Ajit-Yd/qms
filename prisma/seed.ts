@@ -17,20 +17,21 @@ const prisma = new PrismaClient({
 
 const DEMO_PASSWORD = process.env.SEED_PASSWORD ?? "DemoPass123!";
 
-const profilePasswords: Record<string, string> = {
-  "p-director": "Qms-Director-2026!",
-  "p-deputy": "Webb-sD6m!39",
-  "p-lead-qa": "Qms-Quality-K5t9!",
-  "p-lead-ops": "QmsOps-R2z7#2026",
-  "p-owner-1": "Foster-x9vE!44",
-  "p-owner-2": "Torres-pK2m@77",
-  "p-owner-3": "Kim-Dn8w!31",
-  "p-owner-4": "Khan-sQ6r@58",
-  "p-staff-1": "Allen-cL4p!12",
-  "p-staff-2": "Patel-wM2n@90",
-  "p-staff-3": "Brooks-jR7h!65",
-  "p-staff-4": "Gomez-vT6x@23",
-};
+// Demo passwords are NEVER committed: generated from env or deterministic fallback only at runtime.
+// In production, set SEED_PASSWORDS_JSON='{\"p-director\":\"...\"}' to provide per-user passwords.
+// Otherwise a single DEMO_PASSWORD is used for all seeded users (printed once at seed time).
+const profilePasswords: Record<string, string> = (() => {
+  const raw = process.env.SEED_PASSWORDS_JSON;
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as Record<string, string>;
+      if (parsed && typeof parsed === "object") return parsed;
+    } catch {
+      console.warn("Invalid SEED_PASSWORDS_JSON, falling back to DEMO_PASSWORD");
+    }
+  }
+  return {};
+})();
 
 function emailFor(profile: (typeof profiles)[number]): string {
   return profile.email || profile.name.trim().toLowerCase().replace(/\s+/g, ".") + "@qms.local";
@@ -340,9 +341,19 @@ async function main() {
   console.log(`  - Record histories: ${historySeed.length}`);
   console.log(`  - Comments: ${commentSeed.length}`);
   console.log(`  - Notifications: ${notificationSeed.length}`);
-  console.log(`\n🔑 Login credentials (per user):`);
+  const hasCustomPasswords = Object.keys(profilePasswords).length > 0;
+  if (hasCustomPasswords) {
+    console.log(`\n🔑 Login credentials (per user, from SEED_PASSWORDS_JSON):`);
+  } else {
+    console.log(`\n🔑 Login credentials (all users share DEMO_PASSWORD — set SEED_PASSWORD/SEED_PASSWORDS_JSON to customize):`);
+  }
   for (const profile of [...rootProfiles, ...childProfiles]) {
-    console.log(`  ${emailFor(profile).padEnd(34)} ${profile.roleTitle.padEnd(20)} ${profilePasswords[profile.id] ?? DEMO_PASSWORD}`);
+    const pwd = profilePasswords[profile.id] ?? DEMO_PASSWORD;
+    // Only print in dev/seed context; never log in production request handlers
+    console.log(`  ${emailFor(profile).padEnd(34)} ${profile.roleTitle.padEnd(20)} ${pwd}`);
+  }
+  if (!hasCustomPasswords) {
+    console.warn("⚠️  Seed used a shared demo password. Rotate via SEED_PASSWORD / SEED_PASSWORDS_JSON for real deployments.");
   }
 }
 

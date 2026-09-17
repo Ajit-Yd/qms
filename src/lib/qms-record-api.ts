@@ -76,45 +76,70 @@ export async function listModuleRecords(module: ModuleKey, userId: string, profi
   return rows.map((row) => normalizeRecord(module, row as Record<string, unknown>));
 }
 
-export function createDataForModule(module: ModuleKey, body: Record<string, unknown>, userId: string) {
+const ALLOWED_STATUSES = new Set(["Draft", "Pending", "In progress", "Done", "Approved", "Closed", "Overdue", "Active", "Not started", "Inactive"]);
+const ALLOWED_PRIORITY = new Set(["Low", "Medium", "High", "Critical"]);
+const ALLOWED_SEVERITY = new Set(["Low", "Medium", "High", "Critical"]);
+const ALLOWED_SOURCE = new Set(["Customer", "Supplier", "Internal", "Audit"]);
+
+function parseDate(value: unknown): Date | null {
+  if (value == null || value === "") return null;
+  const d = new Date(String(value));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function validateStatus(status: string): string | null {
+  if (!ALLOWED_STATUSES.has(status)) return `Invalid status: ${status}`;
+  return null;
+}
+
+export function createDataForModule(module: ModuleKey, body: Record<string, unknown>, userId: string): Record<string, unknown> | { error: string } {
   const assignedTo = String(body.assignedTo || userId);
-  const status = String(body.status || (module === "capa" ? "Draft" : "Draft"));
+  const status = String(body.status || "Draft");
+  const statusErr = validateStatus(status);
+  if (statusErr) return { error: statusErr };
+
   if (module === "documents") {
-    return { title: String(body.title || "Untitled document").trim(), assignedTo, status, revision: String(body.revision || "1") };
+    const title = String(body.title || "Untitled document").trim();
+    if (!title) return { error: "Title is required" };
+    return { title, assignedTo, status, revision: String(body.revision || "1") };
   }
   if (module === "capa") {
-    return {
-      title: String(body.title || "Untitled CAPA").trim(),
-      assignedTo,
-      status,
-      priority: String(body.priority || "Medium"),
-      dueDate: body.dueDate ? new Date(String(body.dueDate)) : null,
-    };
+    const title = String(body.title || "Untitled CAPA").trim();
+    if (!title) return { error: "Title is required" };
+    const priority = String(body.priority || "Medium");
+    if (!ALLOWED_PRIORITY.has(priority)) return { error: `Invalid priority: ${priority}` };
+    const dueDate = parseDate(body.dueDate);
+    if (body.dueDate && !dueDate) return { error: "Invalid dueDate" };
+    return { title, assignedTo, status, priority, dueDate };
   }
   if (module === "nonconformances") {
-    return {
-      title: String(body.title || "Untitled NCR").trim(),
-      assignedTo,
-      status,
-      source: String(body.source || "Internal"),
-      severity: String(body.severity || "Medium"),
-      date: body.date ? new Date(String(body.date)) : new Date(),
-    };
+    const title = String(body.title || "Untitled NCR").trim();
+    if (!title) return { error: "Title is required" };
+    const source = String(body.source || "Internal");
+    const severity = String(body.severity || "Medium");
+    if (!ALLOWED_SOURCE.has(source)) return { error: `Invalid source: ${source}` };
+    if (!ALLOWED_SEVERITY.has(severity)) return { error: `Invalid severity: ${severity}` };
+    const date = parseDate(body.date) ?? new Date();
+    if (body.date && !parseDate(body.date)) return { error: "Invalid date" };
+    return { title, assignedTo, status, source, severity, date };
   }
   if (module === "audits") {
-    return {
-      title: String(body.title || "Untitled audit").trim(),
-      assignedTo,
-      status,
-      date: body.date ? new Date(String(body.date)) : new Date(),
-    };
+    const title = String(body.title || "Untitled audit").trim();
+    if (!title) return { error: "Title is required" };
+    const date = parseDate(body.date) ?? new Date();
+    if (body.date && !parseDate(body.date)) return { error: "Invalid date" };
+    return { title, assignedTo, status, date };
   }
+  const course = String(body.course || body.title || "General training").trim();
+  if (!course) return { error: "Course is required" };
+  const dueDate = parseDate(body.dueDate);
+  if (body.dueDate && !dueDate) return { error: "Invalid dueDate" };
   return {
     employee: String(body.employee || body.assignedTo || userId),
-    course: String(body.course || body.title || "General training"),
+    course,
     assignedTo,
     status,
-    dueDate: body.dueDate ? new Date(String(body.dueDate)) : null,
+    dueDate,
   };
 }
 
@@ -128,8 +153,12 @@ export async function createModuleRecord(module: ModuleKey, body: Record<string,
     return NextResponse.json({ error: "Forbidden: cannot assign outside your hierarchy" }, { status: 403 });
   }
 
+  const dataOrError = createDataForModule(module, body, userId);
+  if (dataOrError && "error" in dataOrError) {
+    return NextResponse.json({ error: dataOrError.error }, { status: 400 });
+  }
   const created = await prismaForModule(module).create({
-    data: createDataForModule(module, body, userId) as never,
+    data: dataOrError as never,
     include: assignedInclude(),
   });
 
@@ -192,9 +221,29 @@ export async function updateModuleRecord(
 
   const data: Record<string, unknown> = {};
   for (const key of ["title", "priority", "revision", "source", "severity", "employee", "course", "status"]) {
-    if (body[key] !== undefined) data[key] = body[key];
+    if (body[key] !== undefined) {
+      const v = String(body[key]);
+      if (key === "status" && validateStatus(v)) return NextResponse.json({ error: validateStatus(v) }, { status: 400 });
+      if (key === "priority" && !ALLOWED_PRIORITY.has(v)) return NextResponse.json({ error: `Invalid priority: ${v}` }, { status: 400 });
+      if (key === "severity" && !ALLOWED_SEVERITY.has(v)) return NextResponse.json({ error: `Invalid severity: ${v}` }, { status: 400 });
+      if (key === "source" && !ALLOWED_SOURCE.has(v)) return NextResponse.json({ error: `Invalid source: ${v}` }, { status: 400 });
+      if (key === "title" && !v.trim()) return NextResponse.json({ error: "Title cannot be empty" }, { status: 400 });
+      data[key] = body[key];
+    }
   }
-  if (body.dueDate !== undefined) data.dueDate = body.dueDate ? new Date(String(body.dueDate)) : null;
+  if (body.dueDate !== undefined) {
+    if (body.dueDate === null || body.dueDate === "") data.dueDate = null;
+    else {
+      const d = parseDate(body.dueDate);
+      if (!d) return NextResponse.json({ error: "Invalid dueDate" }, { status: 400 });
+      data.dueDate = d;
+    }
+  }
+  if (body.date !== undefined) {
+    const d = parseDate(body.date);
+    if (!d) return NextResponse.json({ error: "Invalid date" }, { status: 400 });
+    data.date = d;
+  }
   if (module === "documents") data.updated = new Date();
 
   const updated = await prismaForModule(module).update({

@@ -17,8 +17,23 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!profileId || !["head", "member"].includes(roleInCommittee)) {
     return NextResponse.json({ error: "Profile ID and valid role are required" }, { status: 400 });
   }
-  const membership = await prisma.committeeMembership.create({
-    data: { committeeId, profileId, roleInCommittee },
-  });
-  return NextResponse.json({ success: true, membership }, { status: 201 });
+  // Check existing membership + profile active
+  const existing = await prisma.committeeMembership.findUnique({ where: { committeeId_profileId: { committeeId, profileId } } });
+  if (existing) return NextResponse.json({ error: "User is already a member of this committee" }, { status: 409 });
+  const targetProfile = await prisma.profile.findUnique({ where: { id: profileId }, select: { active: true } });
+  if (!targetProfile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+  if (targetProfile.active === false) return NextResponse.json({ error: "Cannot add inactive user" }, { status: 400 });
+
+  try {
+    const membership = await prisma.committeeMembership.create({
+      data: { committeeId, profileId, roleInCommittee },
+    });
+    return NextResponse.json({ success: true, membership }, { status: 201 });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("Unique constraint") || msg.includes("unique")) {
+      return NextResponse.json({ error: "Membership already exists" }, { status: 409 });
+    }
+    throw e;
+  }
 }

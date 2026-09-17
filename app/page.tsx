@@ -151,6 +151,7 @@ export default function Home({
   const [accountOpen, setAccountOpen] = useState(false);
   const [editingRecordId, setEditingRecordId] = useState<string | null>(initialView === "edit" ? initialRecordId : null);
   const [page, setPage] = useState(1);
+  const [actionError, setActionError] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -326,7 +327,9 @@ export default function Home({
         }),
       });
       if (!response.ok) {
-        console.error("Failed to create record:", await response.text());
+        const msg = await response.text();
+        console.error("Failed to create record:", msg);
+        try { const j = JSON.parse(msg); setActionError(j.error ?? "Failed to create record"); } catch { setActionError(msg.slice(0,120) || "Failed to create record"); }
         return;
       }
       const data = await response.json();
@@ -355,6 +358,7 @@ export default function Home({
       setShowNewForm(false);
     } catch (error) {
       console.error("Error creating record:", error);
+      setActionError("Network error creating record");
     }
   };
 
@@ -376,10 +380,13 @@ export default function Home({
             setApprovalOpen(false);
           }
         } else {
-          console.error("Failed to delete document:", await response.text());
+          const delMsg = await response.text();
+          console.error("Failed to delete document:", delMsg);
+          try { const j = JSON.parse(delMsg); setActionError(j.error ?? "Delete failed"); } catch { setActionError(delMsg.slice(0,120)); }
         }
       } catch (error) {
         console.error("Error deleting document:", error);
+        setActionError("Network error deleting document");
       }
       return;
     }
@@ -418,7 +425,9 @@ export default function Home({
           }));
           setEditingRecordId(null);
         } else {
-          console.error("Failed to update document:", await response.text());
+          const updMsg = await response.text();
+          console.error("Failed to update document:", updMsg);
+          try { const j = JSON.parse(updMsg); setActionError(j.error ?? "Update failed"); } catch { setActionError(updMsg.slice(0,120)); }
         }
       } catch (error) {
         console.error("Error updating document:", error);
@@ -476,7 +485,9 @@ export default function Home({
           ),
         });
         if (!response.ok) {
-          console.error("Failed to perform workflow action:", await response.text());
+          const wfMsg = await response.text();
+          console.error("Failed to perform workflow action:", wfMsg);
+          try { const j = JSON.parse(wfMsg); setActionError(j.error ?? "Workflow action failed"); } catch { setActionError(wfMsg.slice(0,120)); }
           return;
         }
         const data = await response.json();
@@ -494,6 +505,7 @@ export default function Home({
         }
       } catch (error) {
         console.error("Error performing workflow action:", error);
+        setActionError("Network error performing workflow action");
       }
       return;
     }
@@ -559,10 +571,13 @@ export default function Home({
             ...prev,
           ]);
         } else {
-          console.error("Failed to add comment:", await response.text());
+          const cMsg = await response.text();
+          console.error("Failed to add comment:", cMsg);
+          try { const j = JSON.parse(cMsg); setActionError(j.error ?? "Failed to add comment"); } catch { setActionError(cMsg.slice(0,120)); }
         }
       } catch (error) {
         console.error("Error adding comment:", error);
+        setActionError("Network error adding comment");
       }
       return;
     }
@@ -714,6 +729,13 @@ export default function Home({
               </div>
             </div>
           </header>
+
+          {actionError && (
+            <div className="animate-in mb-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <span>{actionError}</span>
+              <button type="button" onClick={() => setActionError(null)} className="rounded-lg bg-white px-2 py-1 text-xs font-semibold text-red-700 shadow-sm">Dismiss</button>
+            </div>
+          )}
 
           <Dashboard viewerId={viewerId} profiles={profiles} records={records} role={dashboardRole} />
 

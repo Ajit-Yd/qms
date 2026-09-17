@@ -88,12 +88,13 @@ export async function executeSuccession(departingUserId: string, replacementUser
     });
 
     await Promise.all([
-      tx.document.updateMany({ where: { assignedTo: departingUserId }, data: { assignedTo: replacementUserId } }),
-      tx.capa.updateMany({ where: { assignedTo: departingUserId }, data: { assignedTo: replacementUserId } }),
-      tx.nonconformance.updateMany({ where: { assignedTo: departingUserId }, data: { assignedTo: replacementUserId } }),
-      tx.audit.updateMany({ where: { assignedTo: departingUserId }, data: { assignedTo: replacementUserId } }),
-      tx.training.updateMany({ where: { assignedTo: departingUserId }, data: { assignedTo: replacementUserId } }),
+      tx.document.updateMany({ where: { assignedTo: departingUserId, deletedAt: null }, data: { assignedTo: replacementUserId } }),
+      tx.capa.updateMany({ where: { assignedTo: departingUserId, deletedAt: null }, data: { assignedTo: replacementUserId } }),
+      tx.nonconformance.updateMany({ where: { assignedTo: departingUserId, deletedAt: null }, data: { assignedTo: replacementUserId } }),
+      tx.audit.updateMany({ where: { assignedTo: departingUserId, deletedAt: null }, data: { assignedTo: replacementUserId } }),
+      tx.training.updateMany({ where: { assignedTo: departingUserId, deletedAt: null }, data: { assignedTo: replacementUserId } }),
       tx.committeeTask.updateMany({ where: { assignedTo: departingUserId }, data: { assignedTo: replacementUserId } }),
+      tx.committeeTask.updateMany({ where: { assignedBy: departingUserId }, data: { assignedBy: replacementUserId } }),
     ]);
 
     const memberships = await tx.committeeMembership.findMany({ where: { profileId: departingUserId } });

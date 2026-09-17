@@ -70,6 +70,12 @@ export async function PATCH(request: Request) {
 export async function GET() {
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
+  // Restrict: top-authority sees all; others see only own subtree (consistent with getViewerScope)
+  const isTop = isTopAuthority(auth.userId, auth.profiles);
+  if (!isTop) {
+    // Non-top users get scoped view via /api/profiles instead; block bulk dump
+    return NextResponse.json({ error: "Forbidden: team overview requires top-authority" }, { status: 403 });
+  }
   const profiles = await prisma.profile.findMany({ orderBy: { name: "asc" } });
   const [documents, capas, nonconformances, audits, training] = await Promise.all([
     prisma.document.findMany({ where: { deletedAt: null } }),
