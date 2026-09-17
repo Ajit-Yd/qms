@@ -39,6 +39,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# docs intermediates (HTML sources; keep PDFs in /docs)
+docs-temp/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
