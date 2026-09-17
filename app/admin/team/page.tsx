@@ -9,6 +9,7 @@ import { getDashboardRole, isMonitorOnly } from "@/lib/permissions";
 import { recordsByModule } from "@/lib/qms-data";
 import { SuccessionForm, GrantPermissionForm } from "@/components/committee-forms";
 import { ProfileDisplay } from "@/components/profile-display";
+import { Button } from "@/components/ui/button";
 import type { SuccessionSummary } from "@/src/lib/succession";
 
 export default function TeamAdminPage() {
@@ -90,7 +91,7 @@ export default function TeamAdminPage() {
     {canEditStructure && (
       <>
         {/* Add User Section */}
-        <form onSubmit={(event) => { event.preventDefault(); if (!name.trim()) return; void (async () => { setNewUserInfo(""); const response = await fetch("/api/admin/team", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, email: email.trim() || `${name.trim().toLowerCase().replace(/\s+/g, ".")}@qms.local`, roleTitle: roleTitle || "Team member", reportsTo }) }); if (!response.ok) { let message = "Failed to add user."; try { message = (await response.json()).error || message; } catch { /* keep default */ } setNewUserInfo(message); return; } const data = await response.json(); setProfiles((current) => [...current, data.user]); setNewUserInfo(data.temporaryPassword ? `User created. Temporary password: ${data.temporaryPassword}` : "User created."); setName(""); setRoleTitle(""); setEmail(""); })(); }} className="border-t border-slate-200 pt-4"><h2 className="font-semibold text-slate-900">Add user</h2><div className="mt-3 grid gap-3 md:grid-cols-3"><input required value={name} onChange={(event) => setName(event.target.value)} placeholder="Name" aria-label="Name" className="rounded-xl border border-slate-200 px-3 py-2" /><input value={roleTitle} onChange={(event) => setRoleTitle(event.target.value)} placeholder="Role" aria-label="Role" className="rounded-xl border border-slate-200 px-3 py-2" /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="user@company.com" aria-label="Email" className="rounded-xl border border-slate-200 px-3 py-2" /></div><div className="mt-3"><select value={reportsTo} onChange={(event) => setReportsTo(event.target.value)} aria-label="Reports to" className="w-full rounded-xl border border-slate-200 px-3 py-2">{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></div><button type="submit" className="mt-3 rounded-xl bg-[#1D9E75] px-4 py-2 text-sm font-semibold text-white">Add user</button>{newUserInfo && <p className="mt-2 text-sm text-slate-700">{newUserInfo}</p>}</form>
+        <form onSubmit={(event) => { event.preventDefault(); if (!name.trim()) return; void (async () => { setNewUserInfo(""); const response = await fetch("/api/admin/team", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, email: email.trim() || `${name.trim().toLowerCase().replace(/\s+/g, ".")}@qms.local`, roleTitle: roleTitle || "Team member", reportsTo }) }); if (!response.ok) { let message = "Failed to add user."; try { message = (await response.json()).error || message; } catch { /* keep default */ } setNewUserInfo(message); return; } const data = await response.json(); setProfiles((current) => [...current, data.user]); setNewUserInfo(data.temporaryPassword ? `User created. Temporary password: ${data.temporaryPassword}` : "User created."); setName(""); setRoleTitle(""); setEmail(""); })(); }} className="border-t border-slate-200 pt-4"><h2 className="font-semibold text-slate-900">Add user</h2><div className="mt-3 grid gap-3 md:grid-cols-3"><input required value={name} onChange={(event) => setName(event.target.value)} placeholder="Name" aria-label="Name" className="rounded-xl border border-slate-200 px-3 py-2" /><input value={roleTitle} onChange={(event) => setRoleTitle(event.target.value)} placeholder="Role" aria-label="Role" className="rounded-xl border border-slate-200 px-3 py-2" /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="user@company.com" aria-label="Email" className="rounded-xl border border-slate-200 px-3 py-2" /></div><div className="mt-3"><select value={reportsTo} onChange={(event) => setReportsTo(event.target.value)} aria-label="Reports to" className="w-full rounded-xl border border-slate-200 px-3 py-2">{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></div><Button type="submit" variant="primary" size="md" className="mt-3">Add user</Button>{newUserInfo && <p className="mt-2 text-sm text-slate-700">{newUserInfo}</p>}</form>
 
         {/* Reassign Records Section */}
         {!isMonitorOnly(viewerId, profiles) && (<section className="border-t border-slate-200 pt-4"><h2 className="font-semibold text-slate-900">Reassign records</h2><div className="mt-3 space-y-2">{Object.entries(recordsByModule).flatMap(([module, records]) => records.map((record) => <label key={`${module}:${record.id}`} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 text-sm"><span>{"title" in record ? record.title : record.course}</span><select value={recordAssignments[`${module}:${record.id}`]} onChange={(event) => { setRecordAssignments((current) => ({ ...current, [`${module}:${record.id}`]: event.target.value })); void fetch("/api/admin/team", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ module, recordId: record.id, assignedTo: event.target.value }) }); }} className="rounded-lg border border-slate-200 bg-white px-2 py-1">{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>))}</div></section>)}
@@ -99,12 +100,13 @@ export default function TeamAdminPage() {
         <div className="border-t border-slate-200 pt-4">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="font-semibold text-slate-900">Employee Succession</h2>
-            <button
+            <Button
+              variant={showSuccessionForm ? "secondary" : "destructive"}
               onClick={() => { setShowSuccessionForm(!showSuccessionForm); setSuccessionSummary(null); }}
-              className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+              className={showSuccessionForm ? "" : "bg-orange-600 hover:bg-orange-700 border-orange-600"}
             >
               {showSuccessionForm ? "Cancel" : "Replace Employee"}
-            </button>
+            </Button>
           </div>
           {showSuccessionForm && (
             <SuccessionForm
@@ -121,12 +123,13 @@ export default function TeamAdminPage() {
         <div className="border-t border-slate-200 pt-4">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="font-semibold text-slate-900">Committee Permissions</h2>
-            <button
+            <Button
+              variant={showPermissionForm ? "secondary" : "dark"}
               onClick={() => setShowPermissionForm(!showPermissionForm)}
-              className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+              className={showPermissionForm ? "" : "bg-purple-600 hover:bg-purple-700 border-purple-600"}
             >
               {showPermissionForm ? "Cancel" : "Manage Permissions"}
-            </button>
+            </Button>
           </div>
           {showPermissionForm && (
             <GrantPermissionForm

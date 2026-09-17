@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 
 export type ModuleKey =
   | "documents"
@@ -145,19 +146,20 @@ export function DataTable<T extends Record<string, unknown>>({
                   </td>
                 ))}
                 <td className="relative px-4 py-3 text-right" onClick={(event) => event.stopPropagation()}>
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
                     aria-label={`Actions for ${String(row.title ?? row.id ?? "record")}`}
                     onClick={() => setOpenMenuId((current) => current === String(row.id) ? null : String(row.id))}
-                    className="rounded-lg px-2 py-1 text-lg leading-none text-slate-500 hover:bg-slate-100"
+                    className="text-slate-500"
                   >
-                    ...
-                  </button>
+                    ⋯
+                  </Button>
                   {openMenuId === String(row.id) && (
-                    <div className="absolute right-2 top-10 z-10 w-36 rounded-xl border border-slate-200 bg-white p-1 text-left shadow-lg">
-                      <button type="button" onClick={() => { onEdit?.(row); setOpenMenuId(null); }} className="block w-full rounded-lg px-3 py-2 text-sm hover:bg-slate-50">Edit</button>
-                      <button type="button" onClick={() => { onDelete?.(row); setOpenMenuId(null); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50">Delete</button>
-                      <button type="button" onClick={() => { onViewHistory?.(row); setOpenMenuId(null); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50">View history</button>
+                    <div className="absolute right-2 top-10 z-10 w-40 rounded-xl border border-slate-200 bg-white p-1.5 text-left shadow-xl animate-in">
+                      <button type="button" onClick={() => { onEdit?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">✎ Edit</button>
+                      <button type="button" onClick={() => { onDelete?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-700 transition hover:bg-red-50">🗑 Delete</button>
+                      <button type="button" onClick={() => { onViewHistory?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50">◷ View history</button>
                     </div>
                   )}
                 </td>
@@ -183,12 +185,12 @@ export function DataTable<T extends Record<string, unknown>>({
               </div>
             ))}
             <div className="relative mt-2 flex justify-end" onClick={(event) => event.stopPropagation()}>
-              <button type="button" aria-label={`Actions for ${String(row.title ?? row.id ?? "record")}`} onClick={() => setOpenMenuId((current) => current === String(row.id) ? null : String(row.id))} className="rounded-lg px-2 py-1 text-lg leading-none text-slate-500 hover:bg-white">...</button>
+              <Button variant="ghost" size="icon-sm" aria-label={`Actions for ${String(row.title ?? row.id ?? "record")}`} onClick={() => setOpenMenuId((current) => current === String(row.id) ? null : String(row.id))} className="bg-white text-slate-500 shadow-sm">⋯</Button>
               {openMenuId === String(row.id) && (
-                <div className="absolute right-0 top-8 z-10 w-36 rounded-xl border border-slate-200 bg-white p-1 shadow-lg">
-                  <button type="button" onClick={() => { onEdit?.(row); setOpenMenuId(null); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50">Edit</button>
-                  <button type="button" onClick={() => { onDelete?.(row); setOpenMenuId(null); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50">Delete</button>
-                  <button type="button" onClick={() => { onViewHistory?.(row); setOpenMenuId(null); }} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50">View history</button>
+                <div className="absolute right-0 top-8 z-10 w-40 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl animate-in">
+                  <button type="button" onClick={() => { onEdit?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-slate-50">✎ Edit</button>
+                  <button type="button" onClick={() => { onDelete?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-700 hover:bg-red-50">🗑 Delete</button>
+                  <button type="button" onClick={() => { onViewHistory?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-slate-50">◷ View history</button>
                 </div>
               )}
             </div>
@@ -328,15 +330,17 @@ export function RecordForm({
         })}
       </div>
 
-      <div className="flex justify-end gap-2">
-        {onCancel && <button type="button" onClick={onCancel} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold">Cancel</button>}
-        <button
+      <div className="flex justify-end gap-2 pt-1">
+        {onCancel && <Button type="button" variant="secondary" size="md" onClick={onCancel}>Cancel</Button>}
+        <Button
           type="submit"
-          className="rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-          style={{ backgroundColor: moduleConfig[moduleKey].accent }}
+          variant="primary"
+          size="md"
+          style={{ backgroundColor: moduleConfig[moduleKey].accent, borderColor: moduleConfig[moduleKey].accent }}
+          className="min-w-[120px] shadow-md"
         >
           Save record
-        </button>
+        </Button>
       </div>
     </form>
   );

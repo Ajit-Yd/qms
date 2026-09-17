@@ -25,6 +25,7 @@ import {
   type Profile,
 } from "@/lib/permissions";
 import { readSnapshot, writeSnapshot } from "@/lib/qms-cache";
+import { Button } from "@/components/ui/button";
 
 type ModuleRecord = {
   id: string;
@@ -593,26 +594,29 @@ export default function Home({
   return (
     <div className="min-h-screen bg-[#EEF2FA] text-slate-800">
       <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col lg:flex-row">
-        <aside className="w-full bg-[#1E2530] p-3 text-white lg:w-23 lg:p-4">
+        <aside className="w-full bg-[#1E2530] p-3 text-white shadow-[inset_-1px_0_0_rgba(255,255,255,0.06)] lg:w-[72px] lg:p-3">
           <div className="flex items-center justify-between lg:flex-col lg:justify-start lg:gap-6">
-            <Link href="/" aria-label="Dashboard" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-lg font-bold">Q</Link>
-            <nav className="flex gap-2 lg:mt-6 lg:flex-col">
+            <Link href="/" aria-label="Dashboard" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#1E2530] text-lg font-extrabold shadow-sm transition hover:shadow-md active:scale-[0.98]">Q</Link>
+            <nav className="flex gap-2 lg:mt-4 lg:flex-col">
               {moduleList.map((module) => (
                 <button
                   key={module.key}
                   type="button"
                   aria-label={module.label}
                   onClick={() => { setActiveModule(module.key); setPage(1); setApprovalOpen(false); setShowNewForm(false); setEditingRecordId(null); setSelectedRecordId(null); syncUrl(`/${modulePath(module.key)}`); }}
-                  className={`flex h-11 w-11 items-center justify-center rounded-2xl transition ${
-                    activeModule === module.key ? "bg-white/10 text-white" : "text-slate-300 hover:bg-white/5"
+                  className={`group flex h-11 w-11 items-center justify-center rounded-2xl border transition-all duration-200 ${
+                    activeModule === module.key
+                      ? "bg-white text-[#1E2530] border-white shadow-md scale-[1.02]"
+                      : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
                   }`}
+                  title={module.label}
                 >
                   <ModuleIcon moduleKey={module.key} size="sm" />
                 </button>
               ))}
             </nav>
-            <div className="hidden lg:flex">
-              <Link href="/admin/team" className="rounded-xl border border-white/10 px-2 py-1 text-[10px] text-slate-200">
+            <div className="hidden lg:mt-auto lg:flex lg:flex-col lg:gap-2">
+              <Link href="/admin/team" className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-center text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white">
                 Admin
               </Link>
             </div>
@@ -620,7 +624,7 @@ export default function Home({
         </aside>
 
         <main className="flex-1 p-4 md:p-6 lg:p-8">
-          <header className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 md:flex-row md:items-center md:justify-between">
+          <header className="animate-in mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.06)] backdrop-blur-sm md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Quality management system</p>
               <h1 className="mt-1 text-2xl font-bold text-slate-900">{dashboardRole === "top-authority" ? "Executive Dashboard" : dashboardRole === "staff" ? "My Dashboard" : "Team Dashboard"}</h1>
@@ -636,24 +640,25 @@ export default function Home({
                   <option key={profile.id} value={profile.id}>{profile.name}</option>
                 ))}
               </select>
-              <button type="button" onClick={() => searchInputRef.current?.focus()} className="rounded-xl bg-slate-100 px-3 py-2 font-medium" aria-label="Search records">Search</button>
-              <Link href="/admin/team" className="rounded-xl bg-slate-100 px-3 py-2 font-medium">Team admin</Link>
-              <Link href="/settings" className="rounded-xl bg-slate-100 px-3 py-2 font-medium">Settings</Link>
+              <Button variant="subtle" size="md" onClick={() => searchInputRef.current?.focus()} aria-label="Search records">⌕ Search</Button>
+              <Link href="/admin/team" className="inline-flex h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Team admin</Link>
+              <Link href="/settings" className="inline-flex h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Settings</Link>
 
               <div className="relative">
-                <button
-                  type="button"
+                <Button
+                  variant="subtle"
+                  size="md"
                   onClick={() => setNotificationOpen((value) => !value)}
-                  className="relative rounded-xl bg-slate-100 px-3 py-2 font-medium"
                   aria-label="Notifications"
+                  className="relative"
                 >
-                  Bell
+                  <span className="text-[15px]">◐</span> Bell
                   {unreadNotifications.length > 0 && (
-                    <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C1614F] px-1 text-[10px] font-bold text-white">
+                    <span className="absolute -right-1.5 -top-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C1614F] px-1 text-[10px] font-bold text-white shadow">
                       {unreadNotifications.length}
                     </span>
                   )}
-                </button>
+                </Button>
                 {notificationOpen && (
                   <div className="absolute right-0 top-12 z-20 w-72 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
                     {notifications.filter((item) => item.userId === viewerId).length ? (
@@ -697,7 +702,7 @@ export default function Home({
                 )}
               </div>
               <div className="relative">
-                <button type="button" onClick={() => setAccountOpen((value) => !value)} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E2530] font-semibold text-white" aria-label="Open account menu">
+                <button type="button" onClick={() => setAccountOpen((value) => !value)} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E2530] font-semibold text-white shadow-sm ring-1 ring-black/10 transition hover:bg-[#2a3441] hover:shadow-md active:scale-[0.97]" aria-label="Open account menu">
                   {profiles.find((profile) => profile.id === viewerId)?.name.slice(0, 1) ?? "A"}
                 </button>
                 {accountOpen && (
@@ -739,21 +744,21 @@ export default function Home({
                     ))}
                   </select>
                 )}
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={() => {
                     setSearch("");
                     setStatusFilter("all");
                     setSpecificFilter("all");
                   }}
-                  className="rounded-xl border border-slate-200 px-3 py-2 text-sm"
                 >
                   Reset
-                </button>
+                </Button>
                 {profiles.some((profile) => profile.id === viewerId) && canCreateRecords(viewerId, profiles) && (
-                  <button type="button" onClick={() => { setShowNewForm(true); setEditingRecordId(null); setSelectedRecordId(null); setApprovalOpen(false); syncUrl(`/${modulePath(activeModule)}/new`); }} className="rounded-xl bg-[#1D9E75] px-3 py-2 text-sm font-semibold text-white">
-                    New record
-                  </button>
+                  <Button variant="primary" size="md" onClick={() => { setShowNewForm(true); setEditingRecordId(null); setSelectedRecordId(null); setApprovalOpen(false); syncUrl(`/${modulePath(activeModule)}/new`); }}>
+                    ＋ New record
+                  </Button>
                 )}
             </div>
           </div>
@@ -787,10 +792,10 @@ export default function Home({
                 />
                 {visibleRecords.length > pageSize && (
                   <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
-                    <span>Page {currentPage} of {pageCount}</span>
+                    <span className="text-xs font-medium text-slate-500">Page {currentPage} of {pageCount}</span>
                     <div className="flex gap-2">
-                      <button type="button" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40">Previous</button>
-                      <button type="button" disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))} className="rounded-lg border border-slate-200 px-3 py-1.5 disabled:opacity-40">Next</button>
+                      <Button variant="secondary" size="sm" disabled={currentPage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>Previous</Button>
+                      <Button variant="secondary" size="sm" disabled={currentPage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>Next</Button>
                     </div>
                   </div>
                 )}
@@ -821,24 +826,25 @@ export default function Home({
 
                     <div className="mt-4 flex flex-wrap gap-2">
                       {canSubmitOrUpdate(viewerId, String(currentRecord.assignedTo)) && (
-                        <button type="button" onClick={() => handleWorkflow(activeModule, currentRecord.id, "submit", "Submitted for review.")} className="rounded-xl bg-[#1D9E75] px-3 py-2 text-sm font-semibold text-white">Submit</button>
+                        <Button variant="primary" size="md" onClick={() => handleWorkflow(activeModule, currentRecord.id, "submit", "Submitted for review.")}>Submit</Button>
                       )}
                       {canSubmitOrUpdate(viewerId, String(currentRecord.assignedTo)) && (
-                        <button type="button" onClick={() => { setEditingRecordId(currentRecord.id); setShowNewForm(false); setApprovalOpen(false); syncUrl(`/${modulePath(activeModule)}/${currentRecord.id}/edit`); }} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold">Edit</button>
+                        <Button variant="secondary" size="md" onClick={() => { setEditingRecordId(currentRecord.id); setShowNewForm(false); setApprovalOpen(false); syncUrl(`/${modulePath(activeModule)}/${currentRecord.id}/edit`); }}>Edit</Button>
                       )}
                       {canApproveOrRevise(viewerId, String(currentRecord.assignedTo), profiles) && (
                         <>
-                          <button type="button" onClick={() => handleWorkflow(activeModule, currentRecord.id, "approve", "Approved by manager.")} className="rounded-xl bg-[#5C9271] px-3 py-2 text-sm font-semibold text-white">Approve</button>
-                          <button type="button" onClick={() => handleWorkflow(activeModule, currentRecord.id, "revise", "Revise and redirect per request.")} className="rounded-xl bg-[#C1614F] px-3 py-2 text-sm font-semibold text-white">Revise & Redirect</button>
+                          <Button variant="success" size="md" onClick={() => handleWorkflow(activeModule, currentRecord.id, "approve", "Approved by manager.")}>Approve</Button>
+                          <Button variant="destructive" size="md" onClick={() => handleWorkflow(activeModule, currentRecord.id, "revise", "Revise and redirect per request.")}>Revise & Redirect</Button>
                         </>
                       )}
-                      <button
-                        type="button"
+                      <Button
+                        variant="outline"
+                        size="md"
                         onClick={() => handleDeleteRecord(activeModule, currentRecord.id)}
-                        className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700"
+                        className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-300 hover:text-red-800"
                       >
                         Delete
-                      </button>
+                      </Button>
                     </div>
 
                     <div className="mt-5 rounded-xl border border-slate-200 bg-white p-3">

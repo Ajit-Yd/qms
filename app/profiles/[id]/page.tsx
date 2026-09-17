@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ProfileDisplay } from "@/components/profile-display";
 import type { Profile } from "@/lib/permissions";
+import { Button } from "@/components/ui/button";
 
 type ProfileData = {
   profile: Profile;
@@ -67,7 +68,7 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-[#EEF2FA] p-6 text-slate-800">
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <button type="button" onClick={() => router.back()} className="text-sm text-slate-500">← Back</button>
+          <Button variant="ghost" size="sm" onClick={() => router.back()} className="-ml-2">← Back</Button>
           <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">{profile.name}</h1>

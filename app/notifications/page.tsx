@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 type Notification = {
   id: string;
@@ -75,13 +76,13 @@ export default function NotificationsPage() {
                 <div className="flex shrink-0 items-center gap-2">
                   <span className="text-xs text-slate-400">{new Date(item.createdAt).toLocaleDateString()}</span>
                   {!item.read && (
-                    <button
-                      type="button"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => markRead(item.id)}
-                      className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
                     >
                       Mark read
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>

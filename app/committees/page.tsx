@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { DataTable } from "@/components/qms";
 import { canManageCommittees, getProfileById, type Profile } from "@/lib/permissions";
 import { CreateCommitteeForm } from "@/components/committee-forms";
+import { Button } from "@/components/ui/button";
 
 type CommitteeRow = {
   id: string;
@@ -154,12 +155,12 @@ export default function CommitteesPage() {
           </p>
         </div>
         {isManager && (
-          <button
+          <Button
+            variant={showCreateForm ? "secondary" : "primary"}
             onClick={() => setShowCreateForm(!showCreateForm)}
-            className="rounded-xl bg-[#1D9E75] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
           >
-            {showCreateForm ? "Cancel" : "+ New Committee"}
-          </button>
+            {showCreateForm ? "Cancel" : "＋ New Committee"}
+          </Button>
         )}
       </div>
 

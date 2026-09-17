@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export type CommitteeFormType = "create" | "addMember" | "assignTask" | "succession" | "permission";
 
@@ -52,21 +53,8 @@ export function CreateCommitteeForm({
       </label>
 
       <div className="flex justify-end gap-2">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold"
-          >
-            Cancel
-          </button>
-        )}
-        <button
-          type="submit"
-          className="rounded-xl bg-[#1D9E75] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-        >
-          Create Committee
-        </button>
+        {onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>}
+        <Button type="submit" variant="primary">Create Committee</Button>
       </div>
     </form>
   );
@@ -133,21 +121,8 @@ export function AddMemberForm({
       </label>
 
       <div className="flex justify-end gap-2">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold"
-          >
-            Cancel
-          </button>
-        )}
-        <button
-          type="submit"
-          className="rounded-xl bg-[#1D9E75] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-        >
-          Add Member
-        </button>
+        {onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>}
+        <Button type="submit" variant="primary">Add Member</Button>
       </div>
     </form>
   );
@@ -238,21 +213,8 @@ export function AssignTaskForm({
       </div>
 
       <div className="flex justify-end gap-2">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold"
-          >
-            Cancel
-          </button>
-        )}
-        <button
-          type="submit"
-          className="rounded-xl bg-[#1D9E75] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-        >
-          Assign Task
-        </button>
+        {onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>}
+        <Button type="submit" variant="primary">Assign Task</Button>
       </div>
     </form>
   );
@@ -353,31 +315,11 @@ export function SuccessionForm({
       )}
 
       <div className="flex justify-end gap-2">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold"
-          >
-            Cancel
-          </button>
-        )}
+        {onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>}
         {summary && onExecute && (
-          <button
-            type="button"
-            onClick={() => onExecute({ departingUserId, replacementUserId })}
-            className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-          >
-            Execute Replacement
-          </button>
+          <Button type="button" variant="destructive" onClick={() => onExecute({ departingUserId, replacementUserId })}>Execute Replacement</Button>
         )}
-        <button
-          type="submit"
-          disabled={!departingUserId || !replacementUserId}
-          className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
-        >
-          Preview Replacement
-        </button>
+        <Button type="submit" variant="destructive" disabled={!departingUserId || !replacementUserId}>Preview Replacement</Button>
       </div>
     </form>
   );
@@ -460,22 +402,8 @@ export function GrantPermissionForm({
       </label>
 
       <div className="flex justify-end gap-2">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold"
-          >
-            Cancel
-          </button>
-        )}
-        <button
-          type="submit"
-          disabled={!targetUserId}
-          className="rounded-xl bg-[#1D9E75] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
-        >
-          {grant ? "Grant" : "Revoke"} Permission
-        </button>
+        {onCancel && <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>}
+        <Button type="submit" variant="primary" disabled={!targetUserId}>{grant ? "Grant" : "Revoke"} Permission</Button>
       </div>
     </form>
   );

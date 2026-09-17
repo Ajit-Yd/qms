@@ -14,6 +14,7 @@ import {
   getProfileById,
   type Profile,
 } from "@/lib/permissions";
+import { Button } from "@/components/ui/button";
 
 const modulePath = (moduleKey: ModuleKey) => (moduleKey === "capa" ? "capas" : moduleKey);
 
@@ -138,7 +139,7 @@ export function ApprovalPanel({
           <h3 className="truncate text-sm font-semibold text-slate-900">{record.title}</h3>
         </div>
         <StatusBadge status={String(record.status)} />
-        <button type="button" onClick={onClose} aria-label="Close review window" className="flex h-7 w-7 items-center justify-center rounded-full text-slate-500 hover:bg-slate-200">×</button>
+        <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close review window" className="h-7 w-7 rounded-full">×</Button>
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm text-slate-700">
@@ -177,28 +178,32 @@ export function ApprovalPanel({
         <div className="flex flex-wrap gap-2">
           {canApprove && (
             <>
-              <button
-                type="button"
+              <Button
+                variant="success"
+                size="md"
+                loading={pending === "approve"}
                 disabled={pending !== null || alreadyFinal}
                 onClick={() => void run("approve")}
-                className="flex-1 rounded-xl bg-[#5C9271] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className="flex-1"
               >
-                {pending === "approve" ? "Approving…" : "Approve"}
-              </button>
-              <button
-                type="button"
+                Approve
+              </Button>
+              <Button
+                variant="destructive"
+                size="md"
+                loading={pending === "revise"}
                 disabled={pending !== null || alreadyFinal}
                 onClick={() => void run("revise")}
-                className="flex-1 rounded-xl bg-[#C1614F] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className="flex-1"
               >
-                {pending === "revise" ? "Rejecting…" : "Reject"}
-              </button>
+                Reject
+              </Button>
             </>
           )}
           {!canApprove && canEdit && (
             <span className="flex-1 rounded-xl bg-slate-100 px-3 py-2 text-center text-sm text-slate-500">Review handles manager approval only.</span>
           )}
-          <Link href={`/${modulePath(moduleKey)}/${record.id}`} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+          <Link href={`/${modulePath(moduleKey)}/${record.id}`} className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300">
             Open full record
           </Link>
         </div>

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { getProfileById, type Profile } from "@/lib/permissions";
 import { ProfileDisplay } from "@/components/profile-display";
+import { Button } from "@/components/ui/button";
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
@@ -67,7 +68,7 @@ export default function SettingsPage() {
 
         <div className="border-t border-slate-200 pt-4">
           <ProfileDisplay profile={profile} profiles={profiles} memberships={memberships} isCurrentUser />
-          <Link href={`/profiles/${userId}`} className="mt-4 inline-block rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50">
+          <Link href={`/profiles/${userId}`} className="mt-4 inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold shadow-sm transition hover:bg-slate-50 hover:border-slate-300">
             View public profile
           </Link>
         </div>
@@ -77,7 +78,7 @@ export default function SettingsPage() {
           <form onSubmit={changePassword} className="space-y-3">
             <input required name="currentPassword" type="password" placeholder="Current password" aria-label="Current password" className="w-full rounded-xl border border-slate-200 px-3 py-2" />
             <input required minLength={8} name="newPassword" type="password" placeholder="New password (8+ characters)" aria-label="New password" className="w-full rounded-xl border border-slate-200 px-3 py-2" />
-            <button type="submit" className="rounded-xl bg-[#1D9E75] px-4 py-2 text-sm font-semibold text-white">Update password</button>
+            <Button type="submit" variant="primary" size="md">Update password</Button>
           </form>
           {message && <p className="mt-2 text-sm text-emerald-700">{message}</p>}
           {error && <p className="mt-2 text-sm text-red-700">{error}</p>}

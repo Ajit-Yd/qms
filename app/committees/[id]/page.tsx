@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DataTable, StatusBadge } from "@/components/qms";
+import { Button } from "@/components/ui/button";
 import { canAssignCommitteeTask, canManageCommitteeMembers, type Profile } from "@/src/lib/permissions";
 import { AddMemberForm, AssignTaskForm } from "@/components/committee-forms";
 
@@ -264,23 +265,26 @@ export default function CommitteeDetailPage() {
           </div>
           {canManage && !showEditForm && (
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => {
                   setEditName(committee.name);
                   setEditDescription(committee.description ?? "");
                   setShowEditForm(true);
                 }}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-50"
               >
                 Edit
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleDelete}
-                disabled={deleting}
-                className="rounded-xl border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                loading={deleting}
+                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
               >
-                {deleting ? "Deleting…" : "Delete"}
-              </button>
+                Delete
+              </Button>
             </div>
           )}
         </div>
@@ -306,22 +310,18 @@ export default function CommitteeDetailPage() {
             </div>
             {pageError && <p className="text-sm text-red-600">{pageError}</p>}
             <div className="flex gap-2">
-              <button
-                type="submit"
-                className="rounded-xl bg-[#1D9E75] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-              >
-                Save
-              </button>
-              <button
+              <Button type="submit" variant="primary" size="md">Save</Button>
+              <Button
                 type="button"
+                variant="secondary"
+                size="md"
                 onClick={() => {
                   setShowEditForm(false);
                   setPageError("");
                 }}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold hover:bg-slate-50"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         )}
@@ -351,12 +351,12 @@ export default function CommitteeDetailPage() {
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-slate-900">Members ({memberRows.length})</h2>
           {canManage && (
-            <button
+            <Button
+              variant={showAddMember ? "secondary" : "primary"}
               onClick={() => setShowAddMember(!showAddMember)}
-              className="rounded-xl bg-[#1D9E75] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
             >
-              {showAddMember ? "Cancel" : "+ Add Member"}
-            </button>
+              {showAddMember ? "Cancel" : "＋ Add Member"}
+            </Button>
           )}
         </div>
 
@@ -381,12 +381,12 @@ export default function CommitteeDetailPage() {
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-slate-900">Tasks ({taskRows.length})</h2>
           {canAssignTasks && (
-            <button
+            <Button
+              variant={showAssignTask ? "secondary" : "primary"}
               onClick={() => setShowAssignTask(!showAssignTask)}
-              className="rounded-xl bg-[#1D9E75] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
             >
-              {showAssignTask ? "Cancel" : "+ Assign Task"}
-            </button>
+              {showAssignTask ? "Cancel" : "＋ Assign Task"}
+            </Button>
           )}
         </div>
 
