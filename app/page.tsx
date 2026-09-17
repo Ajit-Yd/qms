@@ -21,6 +21,7 @@ import {
   canSubmitOrUpdate,
   getProfileById,
   getDashboardRole,
+  getSubordinateIds,
   getViewerScope,
   type Profile,
 } from "@/lib/permissions";
@@ -302,6 +303,23 @@ export default function Home({
   const unreadNotifications = notifications.filter((item) => item.userId === viewerId && !item.read);
   const recordHistory = history.filter((item) => item.recordType === activeModule && item.recordId === currentRecord?.id);
   const recordComments = comments.filter((item) => item.recordType === activeModule && item.recordId === currentRecord?.id);
+
+  const subordinateIds = useMemo(() => getSubordinateIds(viewerId, profiles), [viewerId, profiles]);
+  const assignableProfiles = useMemo(() => {
+    const subs = profiles.filter((p) => subordinateIds.includes(p.id));
+    if (subs.length === 0) {
+      const self = profiles.find((p) => p.id === viewerId);
+      return self ? [self] : subs;
+    }
+    if (editingRecordId && currentRecord) {
+      const cur = String(currentRecord.assignedTo);
+      if (!subs.some((p) => p.id === cur)) {
+        const curProfile = profiles.find((p) => p.id === cur);
+        if (curProfile) return [...subs, curProfile];
+      }
+    }
+    return subs;
+  }, [profiles, subordinateIds, viewerId, editingRecordId, currentRecord]);
 
   if (sessionStatus === "loading") {
     return <main className="min-h-screen animate-pulse bg-[#EEF2FA] p-8"><div className="h-12 rounded-xl bg-white" /><div className="mt-6 h-64 rounded-2xl bg-white" /></main>;
@@ -789,8 +807,8 @@ export default function Home({
               <div className="mb-4">
                 <RecordForm
                   moduleKey={activeModule}
-                  profiles={profiles}
-                  initialValues={editingRecordId ? Object.fromEntries(Object.entries(currentRecord ?? {}).filter(([, value]) => typeof value === "string")) as Record<string, string> : { assignedTo: viewerId }}
+                  profiles={assignableProfiles}
+                  initialValues={editingRecordId ? Object.fromEntries(Object.entries(currentRecord ?? {}).filter(([, value]) => typeof value === "string")) as Record<string, string> : { assignedTo: assignableProfiles[0]?.id ?? viewerId }}
                   onSubmit={editingRecordId ? (values) => handleUpdateRecord(activeModule, editingRecordId, values) : handleCreateRecord}
                   onCancel={() => { setShowNewForm(false); setEditingRecordId(null); }}
                 />

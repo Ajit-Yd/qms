@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DataTable, StatusBadge } from "@/components/qms";
 import { Button } from "@/components/ui/button";
-import { canAssignCommitteeTask, canManageCommitteeMembers, type Profile } from "@/src/lib/permissions";
+import { canAssignCommitteeTask, canManageCommitteeMembers, getSubordinateIds, type Profile } from "@/src/lib/permissions";
 import { AddMemberForm, AssignTaskForm } from "@/components/committee-forms";
 
 type CommitteeDetail = {
@@ -173,6 +173,17 @@ export default function CommitteeDetailPage() {
       render: (row: TaskRow) => (row.dueDate ? new Date(row.dueDate).toLocaleDateString() : "No due date"),
     },
   ];
+
+  // Hierarchy-filtered: only individuals below viewer at all levels
+  const subordinateIds = getSubordinateIds(viewerId, profiles);
+  const assignableProfilesForAdd = profiles.filter((p) => subordinateIds.includes(p.id));
+  const assignableCommitteeMembers = (() => {
+    const subsSet = new Set(subordinateIds);
+    return memberRows.filter((m) => {
+      const pid = memberships.find((ms) => ms.id === m.id)?.profileId;
+      return pid ? subsSet.has(pid) : false;
+    });
+  })();
 
   const handleAddMember = async (values: { profileId: string; roleInCommittee: string }) => {
     const response = await fetch(`/api/committees/${committeeId}/members`, {
@@ -364,10 +375,13 @@ export default function CommitteeDetailPage() {
           <div className="mb-4">
             <AddMemberForm
               committeeMembers={memberRows}
-              availableProfiles={profiles}
+              availableProfiles={assignableProfilesForAdd}
               onSubmit={handleAddMember}
               onCancel={() => setShowAddMember(false)}
             />
+            {assignableProfilesForAdd.length === 0 && (
+              <p className="mt-2 text-xs text-amber-600">No subordinates available to add. Only individuals below you across all levels are shown.</p>
+            )}
           </div>
         )}
 
@@ -394,10 +408,13 @@ export default function CommitteeDetailPage() {
           <div className="mb-4">
             <AssignTaskForm
               committeeName={committee.name}
-              committeeMembers={memberRows}
+              committeeMembers={assignableCommitteeMembers}
               onSubmit={handleAssignTask}
               onCancel={() => setShowAssignTask(false)}
             />
+            {assignableCommitteeMembers.length === 0 && (
+              <p className="mt-2 text-xs text-amber-600">No subordinate committee members available. Tasks can only be assigned to individuals below you across all levels.</p>
+            )}
           </div>
         )}
 
