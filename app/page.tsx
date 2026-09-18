@@ -156,22 +156,18 @@ export default function Home({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
-  const mobileHeaderRef = useRef<HTMLDivElement>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Close popovers on outside click or Escape
   useEffect(() => {
-    if (!notificationOpen && !accountOpen && !mobileMenuOpen) return;
+    if (!notificationOpen && !accountOpen) return;
     const onDown = (e: MouseEvent) => {
       if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) setNotificationOpen(false);
       if (accountRef.current && !accountRef.current.contains(e.target as Node)) setAccountOpen(false);
-      if (mobileHeaderRef.current && !mobileHeaderRef.current.contains(e.target as Node)) setMobileMenuOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setNotificationOpen(false);
         setAccountOpen(false);
-        setMobileMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", onDown);
@@ -180,7 +176,7 @@ export default function Home({
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
     };
-  }, [notificationOpen, accountOpen, mobileMenuOpen]);
+  }, [notificationOpen, accountOpen]);
 
   useEffect(() => {
     if (!viewerId) return;
@@ -688,28 +684,29 @@ export default function Home({
         </aside>
 
         <main className="flex-1 min-w-0 p-3 pb-20 sm:p-4 sm:pb-20 md:p-6 lg:p-8 lg:pb-8 2xl:p-10">
-          <header className="animate-in sticky top-0 z-20 mb-4 flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90 sm:mb-6 sm:gap-3 sm:p-4 lg:static lg:top-auto lg:z-auto">
-            <div className="flex items-center justify-between gap-2 sm:gap-3">
+          <header className="animate-in sticky top-0 z-20 mb-4 flex flex-col gap-0 rounded-2xl border border-slate-200 bg-white/95 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90 sm:mb-6 sm:gap-0 lg:static lg:top-auto lg:z-auto">
+            {/* Row 1: Title + Bell/Avatar — always visible, compact on mobile */}
+            <div className="flex items-center justify-between gap-2 p-3 sm:gap-3 sm:p-4">
               <div className="min-w-0 flex-1">
                 <p className="hidden text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:block sm:text-xs">Quality management system</p>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:hidden">QMS</p>
                 <h1 className="mt-0.5 truncate text-[17px] font-bold leading-tight text-slate-900 sm:mt-1 sm:text-2xl">{dashboardRole === "top-authority" ? "Executive Dashboard" : dashboardRole === "staff" ? "My Dashboard" : "Team Dashboard"}</h1>
               </div>
               <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-                {/* Desktop: viewer + search + admin (hidden on mobile) */}
-                <div className="hidden items-center gap-2 md:flex">
+                {/* Desktop: viewer + search + admin — hidden on mobile, shown in row 2 */}
+                <div className="hidden items-center gap-2 lg:flex">
                   <select
                     value={viewerId}
                     disabled
-                    className="hidden rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm lg:block"
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
                     aria-label="Viewer"
                   >
                     {profiles.map((profile) => (
                       <option key={profile.id} value={profile.id}>{profile.name}</option>
                     ))}
                   </select>
-                  <Button variant="subtle" size="md" onClick={() => searchInputRef.current?.focus()} aria-label="Search records" className="hidden lg:inline-flex">⌕ Search</Button>
-                  <Link href="/admin/team" className="hidden h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 lg:inline-flex">Team admin</Link>
+                  <Button variant="subtle" size="md" onClick={() => searchInputRef.current?.focus()} aria-label="Search records">⌕ Search</Button>
+                  <Link href="/admin/team" className="inline-flex h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Team admin</Link>
                   <Link href="/settings" className="hidden h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 xl:inline-flex">Settings</Link>
                 </div>
                 <div ref={notificationRef} className="relative">
@@ -782,23 +779,23 @@ export default function Home({
                   </div>
                 )}
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen((v) => !v)} aria-expanded={mobileMenuOpen} aria-haspopup="menu" aria-label="Open menu" className="h-9 w-9 md:hidden">☰</Button>
               </div>
             </div>
-            {mobileMenuOpen && (
-              <div ref={mobileHeaderRef} className="animate-in mt-2 grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3 md:hidden">
-                <select value={viewerId} disabled className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" aria-label="Viewer">
+            {/* Mobile second section — split header for small devices */}
+            <div className="mt-2 grid gap-2 border-t border-slate-100 pt-3 sm:pt-3 lg:hidden">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <select value={viewerId} disabled className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm" aria-label="Viewer">
                   {profiles.map((profile) => (
                     <option key={profile.id} value={profile.id}>{profile.name}</option>
                   ))}
                 </select>
-                <Button variant="subtle" size="md" fullWidth onClick={() => { searchInputRef.current?.focus(); setMobileMenuOpen(false); }}>⌕ Search records</Button>
-                <div className="grid grid-cols-2 gap-2">
-                  <Link href="/admin/team" onClick={() => setMobileMenuOpen(false)} className="flex h-10 items-center justify-center rounded-xl bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200">Team admin</Link>
-                  <Link href="/settings" onClick={() => setMobileMenuOpen(false)} className="flex h-10 items-center justify-center rounded-xl bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200">Settings</Link>
-                </div>
+                <Button variant="subtle" size="md" fullWidth onClick={() => searchInputRef.current?.focus()} aria-label="Search records">⌕ Search records</Button>
               </div>
-            )}
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/admin/team" className="flex h-10 items-center justify-center rounded-xl bg-slate-100 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Team admin</Link>
+                <Link href="/settings" className="flex h-10 items-center justify-center rounded-xl bg-slate-100 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Settings</Link>
+              </div>
+            </div>
           </header>
 
           {actionError && (
