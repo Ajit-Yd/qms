@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 export type ModuleKey =
@@ -111,6 +111,23 @@ export function DataTable<T extends Record<string, unknown>>({
   onViewHistory?: (row: T) => void;
 }) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (openMenuId === null) return;
+    const onDown = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpenMenuId(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenMenuId(null);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [openMenuId]);
 
   if (!rows.length) {
     return (
@@ -121,7 +138,7 @@ export function DataTable<T extends Record<string, unknown>>({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <div ref={containerRef} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full text-left text-sm text-slate-700">
           <thead className="bg-slate-50 text-slate-600">
@@ -150,6 +167,8 @@ export function DataTable<T extends Record<string, unknown>>({
                     variant="ghost"
                     size="icon-sm"
                     aria-label={`Actions for ${String(row.title ?? row.id ?? "record")}`}
+                    aria-expanded={openMenuId === String(row.id)}
+                    aria-haspopup="menu"
                     onClick={() => setOpenMenuId((current) => current === String(row.id) ? null : String(row.id))}
                     className="text-slate-500"
                   >
@@ -185,7 +204,7 @@ export function DataTable<T extends Record<string, unknown>>({
               </div>
             ))}
             <div className="relative mt-2 flex justify-end" onClick={(event) => event.stopPropagation()}>
-              <Button variant="ghost" size="icon-sm" aria-label={`Actions for ${String(row.title ?? row.id ?? "record")}`} onClick={() => setOpenMenuId((current) => current === String(row.id) ? null : String(row.id))} className="bg-white text-slate-500 shadow-sm">⋯</Button>
+              <Button variant="ghost" size="icon-sm" aria-label={`Actions for ${String(row.title ?? row.id ?? "record")}`} aria-expanded={openMenuId === String(row.id)} aria-haspopup="menu" onClick={() => setOpenMenuId((current) => current === String(row.id) ? null : String(row.id))} className="bg-white text-slate-500 shadow-sm">⋯</Button>
               {openMenuId === String(row.id) && (
                 <div className="absolute right-0 top-8 z-10 w-40 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl animate-in">
                   <button type="button" onClick={() => { onEdit?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-slate-50">✎ Edit</button>

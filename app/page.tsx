@@ -154,6 +154,29 @@ export default function Home({
   const [page, setPage] = useState(1);
   const [actionError, setActionError] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  // Close profile/notification popovers on outside click or Escape
+  useEffect(() => {
+    if (!notificationOpen && !accountOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) setNotificationOpen(false);
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) setAccountOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setNotificationOpen(false);
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [notificationOpen, accountOpen]);
 
   useEffect(() => {
     if (!viewerId) return;
@@ -680,11 +703,13 @@ export default function Home({
               <Link href="/admin/team" className="inline-flex h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Team admin</Link>
               <Link href="/settings" className="inline-flex h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Settings</Link>
 
-              <div className="relative">
+              <div ref={notificationRef} className="relative">
                 <Button
                   variant="subtle"
                   size="md"
                   onClick={() => setNotificationOpen((value) => !value)}
+                  aria-expanded={notificationOpen}
+                  aria-haspopup="menu"
                   aria-label="Notifications"
                   className="relative"
                 >
@@ -737,8 +762,8 @@ export default function Home({
                   </div>
                 )}
               </div>
-              <div className="relative">
-                <button type="button" onClick={() => setAccountOpen((value) => !value)} className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E2530] font-semibold text-white shadow-sm ring-1 ring-black/10 transition hover:bg-[#2a3441] hover:shadow-md active:scale-[0.97]" aria-label="Open account menu">
+              <div ref={accountRef} className="relative">
+                <button type="button" onClick={() => setAccountOpen((value) => !value)} aria-expanded={accountOpen} aria-haspopup="menu" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E2530] font-semibold text-white shadow-sm ring-1 ring-black/10 transition hover:bg-[#2a3441] hover:shadow-md active:scale-[0.97]" aria-label="Open account menu">
                   {profiles.find((profile) => profile.id === viewerId)?.name.slice(0, 1) ?? "A"}
                 </button>
                 {accountOpen && (
