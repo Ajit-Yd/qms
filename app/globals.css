@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
   --background: #eef2fa;
   --foreground: #1f2937;
@@ -8,6 +10,12 @@
   --radius: 16px;
   --shadow-soft: 0 1px 2px rgba(16, 24, 40, 0.04), 0 4px 12px rgba(16, 24, 40, 0.04);
   --shadow-medium: 0 4px 16px rgba(16, 24, 40, 0.08), 0 1px 3px rgba(16, 24, 40, 0.06);
+}
+
+.dark {
+  --background: #0b1220;
+  --foreground: #e2e8f0;
+  color-scheme: dark;
 }
 
 * {
@@ -28,6 +36,58 @@ body {
   font-family: "Inter", "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dark body {
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(29, 158, 117, 0.12) 0%, transparent 60%),
+    radial-gradient(1000px 500px at 90% 0%, rgba(74, 93, 122, 0.12) 0%, transparent 60%),
+    var(--background);
+}
+
+/* Dark mode base overrides for Tailwind utilities that use fixed colors */
+.dark {
+  --tw-border-opacity: 1;
+}
+.dark .bg-white {
+  background-color: #1e293b;
+}
+.dark .bg-slate-50 {
+  background-color: #0f172a;
+}
+.dark .bg-slate-100 {
+  background-color: #1e293b;
+}
+.dark .text-slate-900 {
+  color: #f1f5f9;
+}
+.dark .text-slate-800 {
+  color: #e2e8f0;
+}
+.dark .text-slate-700 {
+  color: #cbd5e1;
+}
+.dark .text-slate-600 {
+  color: #94a3b8;
+}
+.dark .text-slate-500 {
+  color: #64748b;
+}
+.dark .border-slate-200 {
+  border-color: #334155;
+}
+.dark .border-slate-100 {
+  border-color: #1e293b;
+}
+.dark .bg-white\/95,
+.dark .bg-white\/90 {
+  background-color: rgba(30, 41, 59, 0.95) !important;
+}
+.dark .bg-\[\#EEF2FA\] {
+  background-color: #0b1220 !important;
+}
+.dark .shadow-\[0_1px_2px_rgba\(16\2c 24\2c 40\2c 0\.04\)\2c 0_8px_24px_rgba\(16\2c 24\2c 40\2c 0\.06\)\] {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.3) !important;
 }
 
 button,
@@ -51,6 +111,9 @@ textarea:focus-visible {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 #f1f5f9;
 }
+.dark * {
+  scrollbar-color: #334155 #0f172a;
+}
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -60,8 +123,28 @@ textarea:focus-visible {
   border-radius: 999px;
   border: 2px solid #f1f5f9;
 }
+.dark *::-webkit-scrollbar-thumb {
+  background: #334155;
+  border: 2px solid #0f172a;
+}
 *::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Dark inputs */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b;
 }
 
 /* Animations */

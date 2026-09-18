@@ -27,6 +27,7 @@ import {
 } from "@/lib/permissions";
 import { readSnapshot, writeSnapshot } from "@/lib/qms-cache";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 type ModuleRecord = {
   id: string;
@@ -684,7 +685,7 @@ export default function Home({
         </aside>
 
         <main className="flex-1 min-w-0 p-3 pb-20 sm:p-4 sm:pb-20 md:p-6 lg:p-8 lg:pb-8 2xl:p-10">
-          <header className="animate-in sticky top-0 z-20 mb-4 flex flex-col gap-0 rounded-2xl border border-slate-200 bg-white/95 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90 sm:mb-6 sm:gap-0 lg:static lg:top-auto lg:z-auto">
+          <header className="animate-in sticky top-0 z-20 mb-4 flex flex-col gap-0 rounded-2xl border border-slate-200 bg-white/95 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90 dark:border-slate-700 dark:bg-slate-900/95 dark:supports-[backdrop-filter]:bg-slate-900/90 sm:mb-6 sm:gap-0 lg:static lg:top-auto lg:z-auto">
             {/* Row 1: Title + Bell/Avatar — always visible, compact on mobile */}
             <div className="flex items-center justify-between gap-2 p-3 sm:gap-3 sm:p-4">
               <div className="min-w-0 flex-1">
@@ -709,6 +710,7 @@ export default function Home({
                   <Link href="/admin/team" className="inline-flex h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Team admin</Link>
                   <Link href="/settings" className="hidden h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 xl:inline-flex">Settings</Link>
                 </div>
+                <ThemeToggle />
                 <div ref={notificationRef} className="relative">
                   <Button
                     variant="subtle"
@@ -717,7 +719,7 @@ export default function Home({
                     aria-expanded={notificationOpen}
                     aria-haspopup="menu"
                     aria-label="Notifications"
-                    className="relative h-9 w-9 p-0 sm:h-9 sm:w-auto sm:px-4"
+                    className="relative h-9 w-9 p-0 sm:h-9 sm:w-auto sm:px-4 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                   >
                     <span className="text-[15px]">◐</span> <span className="hidden sm:inline">Bell</span>
                   {unreadNotifications.length > 0 && (

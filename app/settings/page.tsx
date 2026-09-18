@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { getProfileById, type Profile } from "@/lib/permissions";
 import { ProfileDisplay } from "@/components/profile-display";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 export default function SettingsPage() {
@@ -63,7 +64,7 @@ export default function SettingsPage() {
       <section className="mx-auto w-full max-w-2xl space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:space-y-6 sm:p-6">
         <div>
           <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-800">Back to dashboard</Link>
-          <h1 className="mt-4 text-2xl font-bold text-slate-900">Settings</h1>
+          <div className="flex items-center justify-between gap-3"><h1 className="mt-4 text-2xl font-bold text-slate-900">Settings</h1><ThemeToggle /></div>
         </div>
 
         <div className="border-t border-slate-200 pt-4">

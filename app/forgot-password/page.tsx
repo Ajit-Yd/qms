@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
@@ -25,8 +26,9 @@ export default function ForgotPasswordPage() {
     }
   };
   return (
-    <main className="min-h-screen bg-[#EEF2FA] p-4 sm:p-6 text-slate-800">
-      <form onSubmit={handleSubmit} className="animate-in mx-auto mt-8 max-w-[92%] sm:max-w-md rounded-2xl border border-slate-200 bg-white p-4 sm:mt-16 sm:p-6 shadow-[0_8px_32px_rgba(16,24,40,0.08)]">
+    <main className="min-h-screen bg-[#EEF2FA] p-4 sm:p-6 text-slate-800 dark:bg-[#0b1220] dark:text-slate-200">
+      <div className="mx-auto flex w-full max-w-[92%] justify-end sm:max-w-md"><ThemeToggle /></div>
+      <form onSubmit={handleSubmit} className="animate-in mx-auto mt-4 max-w-[92%] sm:max-w-md rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800 sm:mt-8 sm:p-6 shadow-[0_8px_32px_rgba(16,24,40,0.08)]">
         <h1 className="text-2xl font-bold text-slate-900">Reset password</h1>
         <p className="mt-2 text-sm text-slate-600">Enter your email and we will send reset instructions.</p>
         <input required type="email" name="email" aria-label="Email" className="mt-5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus:bg-white" />

@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { DataTable } from "@/components/qms";
 import { canManageCommittees, getProfileById, type Profile } from "@/lib/permissions";
 import { CreateCommitteeForm } from "@/components/committee-forms";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 type CommitteeRow = {
@@ -148,11 +149,14 @@ export default function CommitteesPage() {
   return (
     <div className="space-y-4 p-3 sm:p-4 md:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Committees & Clubs</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            {rows.length} committee{rows.length !== 1 ? "s" : ""}
-          </p>
+        <div className="flex flex-1 items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Committees & Clubs</h1>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              {rows.length} committee{rows.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <ThemeToggle />
         </div>
         {isManager && (
           <Button

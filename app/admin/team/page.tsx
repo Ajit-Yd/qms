@@ -9,6 +9,7 @@ import { getDashboardRole, isMonitorOnly } from "@/lib/permissions";
 import { recordsByModule } from "@/lib/qms-data";
 import { SuccessionForm, GrantPermissionForm } from "@/components/committee-forms";
 import { ProfileDisplay } from "@/components/profile-display";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import type { SuccessionSummary } from "@/src/lib/succession";
 
@@ -78,7 +79,7 @@ export default function TeamAdminPage() {
   return <main className="min-h-screen bg-[#EEF2FA] p-3 sm:p-6 text-slate-800"><section className="mx-auto max-w-4xl space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:space-y-6 sm:p-6">
     <div>
       <Link href="/" className="text-sm text-slate-500">Back to dashboard</Link>
-      <h1 className="mt-4 text-2xl font-bold text-slate-900">Team admin</h1>
+      <div className="flex items-center justify-between gap-3"><h1 className="mt-4 text-2xl font-bold text-slate-900">Team admin</h1><ThemeToggle /></div>
       <p className="mt-2 text-sm text-slate-600">Manage reporting relationships, team access, and committee permissions.</p>
     </div>
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 export default function ResetPasswordPage() {
@@ -30,8 +31,9 @@ export default function ResetPasswordPage() {
     }
   };
   return (
-    <main className="min-h-screen bg-[#EEF2FA] p-4 sm:p-6 text-slate-800">
-      <form onSubmit={handleSubmit} className="animate-in mx-auto mt-8 max-w-[92%] sm:max-w-md rounded-2xl border border-slate-200 bg-white p-4 sm:mt-16 sm:p-6 shadow-[0_8px_32px_rgba(16,24,40,0.08)]">
+    <main className="min-h-screen bg-[#EEF2FA] p-4 sm:p-6 text-slate-800 dark:bg-[#0b1220] dark:text-slate-200">
+      <div className="mx-auto flex w-full max-w-[92%] justify-end sm:max-w-md"><ThemeToggle /></div>
+      <form onSubmit={handleSubmit} className="animate-in mx-auto mt-4 max-w-[92%] sm:max-w-md rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800 sm:mt-8 sm:p-6 shadow-[0_8px_32px_rgba(16,24,40,0.08)]">
         <h1 className="text-2xl font-bold text-slate-900">Choose a new password</h1>
         <p className="mt-2 text-sm text-slate-600">Enter the token from your email (auto-filled if you clicked the link) and your new password.</p>
         <input name="email" type="email" placeholder="Email (optional)" aria-label="Email" className="mt-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus:bg-white" defaultValue={searchParams.get("email") ?? ""} />
