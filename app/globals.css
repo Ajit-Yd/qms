@@ -103,3 +103,35 @@ textarea:focus-visible {
     padding-right: 1rem;
   }
 }
+/* Large monitors: slightly larger base and more breathing room */
+@media (min-width: 1920px) {
+  html {
+    font-size: 17px;
+  }
+  body {
+    background: radial-gradient(1400px 700px at 20% -10%, rgba(29, 158, 117, 0.09) 0%, transparent 60%),
+      radial-gradient(1200px 600px at 90% 0%, rgba(74, 93, 122, 0.08) 0%, transparent 60%),
+      var(--background);
+  }
+}
+@media (min-width: 2560px) {
+  html {
+    font-size: 18px;
+  }
+}
+/* Tablet: ensure touch targets and avoid hover-only interactions */
+@media (pointer: coarse) {
+  button,
+  a {
+    min-height: 44px;
+  }
+  [role="menu"] button {
+    min-height: 44px;
+  }
+}
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in {
+    animation: none;
+  }
+}

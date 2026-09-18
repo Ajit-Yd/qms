@@ -649,11 +649,12 @@ export default function Home({
 
   return (
     <div className="min-h-screen bg-[#EEF2FA] text-slate-800">
-      <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col lg:flex-row">
-        <aside className="sticky top-0 z-30 w-full shrink-0 bg-[#1E2530] p-2.5 text-white shadow-[inset_-1px_0_0_rgba(255,255,255,0.06)] sm:p-3 lg:sticky lg:top-0 lg:h-screen lg:w-[72px] lg:p-3">
-          <div className="flex items-center gap-3 sm:justify-between lg:flex-col lg:items-center lg:justify-start lg:gap-6">
-            <Link href="/" aria-label="Dashboard" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-[#1E2530] text-lg font-extrabold shadow-sm transition hover:shadow-md active:scale-[0.98] sm:h-11 sm:w-11">Q</Link>
-            <nav className="flex flex-1 gap-1.5 overflow-x-auto scrollbar-none sm:gap-2 lg:mt-4 lg:flex-col lg:overflow-visible">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col lg:flex-row 2xl:max-w-[1720px]">
+        <aside className="fixed inset-x-0 bottom-0 z-30 w-full shrink-0 border-t border-white/10 bg-[#1E2530] p-2 pb-[max(8px,env(safe-area-inset-bottom))] text-white shadow-[0_-8px_24px_rgba(0,0,0,0.2)] sm:p-3 lg:sticky lg:top-0 lg:bottom-auto lg:h-screen lg:w-[72px] lg:border-t-0 lg:border-r lg:border-white/10 lg:p-3 lg:shadow-[inset_-1px_0_0_rgba(255,255,255,0.06)]">
+          <div className="flex items-center gap-2 sm:gap-3 sm:justify-between lg:flex-col lg:items-center lg:justify-start lg:gap-6">
+            <Link href="/" aria-label="Dashboard" className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-[#1E2530] text-lg font-extrabold shadow-sm transition hover:shadow-md active:scale-[0.98] sm:flex sm:h-11 sm:w-11 lg:flex">Q</Link>
+            <Link href="/" aria-label="Dashboard" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#1E2530] text-base font-extrabold sm:hidden">Q</Link>
+            <nav className="flex flex-1 gap-1 overflow-x-auto scrollbar-none sm:gap-2 lg:mt-4 lg:flex-col lg:overflow-visible lg:gap-2">
               {moduleList.map((module) => (
                 <button
                   key={module.key}
@@ -682,7 +683,7 @@ export default function Home({
           </div>
         </aside>
 
-        <main className="flex-1 min-w-0 p-3 sm:p-4 md:p-6 lg:p-8">
+        <main className="flex-1 min-w-0 p-3 pb-20 sm:p-4 sm:pb-20 md:p-6 lg:p-8 lg:pb-8 2xl:p-10">
           <header className="animate-in mb-4 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/90 p-3 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.06)] backdrop-blur-sm sm:mb-6 sm:gap-4 sm:p-4 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:text-xs">Quality management system</p>
