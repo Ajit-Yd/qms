@@ -25,7 +25,6 @@ import {
   getViewerScope,
   type Profile,
 } from "@/lib/permissions";
-import { readSnapshot, writeSnapshot } from "@/lib/qms-cache";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -135,13 +134,12 @@ export default function Home({
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus } = useSession();
   const viewerId = session?.user && "id" in session.user ? String(session.user.id) : "";
-  const cachedSnapshot = viewerId ? readSnapshot(viewerId) : null;
-  const [profiles, setProfiles] = useState<Profile[]>(cachedSnapshot?.profiles ?? []);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const dashboardRole = getDashboardRole(viewerId, profiles);
-  const [records, setRecords] = useState<Record<ModuleKey, ModuleRecord[]>>(cachedSnapshot?.records ?? emptyRecords);
+  const [records, setRecords] = useState<Record<ModuleKey, ModuleRecord[]>>(emptyRecords);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [comments, setComments] = useState<CommentEntry[]>([]);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(cachedSnapshot?.notifications ?? []);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [activeModule, setActiveModule] = useState<ModuleKey>(initialModule);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") ?? "all");
@@ -215,12 +213,6 @@ export default function Home({
     };
     void load();
   }, [viewerId]);
-
-  // Keep the in-memory snapshot current so back-navigation renders instantly.
-  useEffect(() => {
-    if (!viewerId) return;
-    writeSnapshot(viewerId, { profiles, notifications, records });
-  }, [viewerId, profiles, notifications, records]);
 
   useEffect(() => {
     if (!viewerId || !selectedRecordId) return;

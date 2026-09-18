@@ -21,17 +21,4 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
   );
 }
 
-// Compact version for mobile header (smaller, ghost)
-export function ThemeToggleCompact({ className = "" }: { className?: string }) {
-  const { theme, toggle } = useTheme();
-  return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-      className={`flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 sm:h-10 sm:w-10 ${className}`}
-    >
-      <span className="text-[16px]">{theme === "dark" ? "☀" : "☾"}</span>
-    </button>
-  );
-}
+

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
-import { canManageCommitteeMembers } from "@/src/lib/permissions";
+import { canManageCommittees } from "@/src/lib/permissions";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
-  if (!canManageCommitteeMembers(auth.userId, auth.profiles)) {
+  if (!canManageCommittees(auth.userId, auth.profiles)) {
     return NextResponse.json({ error: "You do not have permission to manage committee members" }, { status: 403 });
   }
   const { id: committeeId } = await params;

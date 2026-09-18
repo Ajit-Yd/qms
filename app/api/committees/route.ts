@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
-import { canCreateCommittee } from "@/src/lib/permissions";
+import { canManageCommittees } from "@/src/lib/permissions";
 
 export async function GET() {
   const auth = await requireSessionUser();
@@ -16,7 +16,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
-  if (!canCreateCommittee(auth.userId, auth.profiles)) {
+  if (!canManageCommittees(auth.userId, auth.profiles)) {
     return NextResponse.json({ error: "You do not have permission to create committees" }, { status: 403 });
   }
   const body = await request.json();

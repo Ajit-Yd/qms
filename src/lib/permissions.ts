@@ -61,22 +61,6 @@ export function canGrantCommitteePermission(userId: string, profiles: Profile[])
   return isTopAuthority(userId, profiles);
 }
 
-export function canCreateCommittee(userId: string, profiles: Profile[]): boolean {
-  return canManageCommittees(userId, profiles);
-}
-
-export function canManageCommitteeMembers(userId: string, profiles: Profile[]): boolean {
-  return canManageCommittees(userId, profiles);
-}
-
-export function canAssignCommitteeHead(userId: string, profiles: Profile[]): boolean {
-  return canManageCommittees(userId, profiles);
-}
-
-export function canDeleteCommittee(userId: string, profiles: Profile[]): boolean {
-  return canManageCommittees(userId, profiles);
-}
-
 export function isCommitteeHead(
   userId: string,
   committeeId: string,

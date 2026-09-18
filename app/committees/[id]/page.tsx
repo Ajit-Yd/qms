@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { DataTable, StatusBadge } from "@/components/qms";
 import { Button } from "@/components/ui/button";
-import { canAssignCommitteeTask, canManageCommitteeMembers, getSubordinateIds, type Profile } from "@/src/lib/permissions";
+import { canAssignCommitteeTask, canManageCommittees, getSubordinateIds, type Profile } from "@/src/lib/permissions";
 import { AddMemberForm, AssignTaskForm } from "@/components/committee-forms";
 
 type CommitteeDetail = {
@@ -116,7 +116,7 @@ export default function CommitteeDetailPage() {
   const memberships = committee.memberships ?? [];
   const tasks = committee.tasks ?? [];
 
-  const canManage = canManageCommitteeMembers(viewerId, profiles);
+  const canManage = canManageCommittees(viewerId, profiles);
   const canAssignTasks = canAssignCommitteeTask(viewerId, committeeId, profiles);
 
   const profileName = (id: string) => profiles.find((p) => p.id === id)?.name || "Unknown";
