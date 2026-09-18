@@ -59,8 +59,8 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#EEF2FA] p-6 text-slate-800">
-      <section className="mx-auto max-w-2xl space-y-6 rounded-2xl border border-slate-200 bg-white p-6">
+    <main className="min-h-screen bg-[#EEF2FA] p-3 sm:p-6 text-slate-800">
+      <section className="mx-auto w-full max-w-2xl space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:space-y-6 sm:p-6">
         <div>
           <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-800">Back to dashboard</Link>
           <h1 className="mt-4 text-2xl font-bold text-slate-900">Settings</h1>

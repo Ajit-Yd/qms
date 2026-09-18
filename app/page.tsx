@@ -627,17 +627,17 @@ export default function Home({
   return (
     <div className="min-h-screen bg-[#EEF2FA] text-slate-800">
       <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col lg:flex-row">
-        <aside className="w-full bg-[#1E2530] p-3 text-white shadow-[inset_-1px_0_0_rgba(255,255,255,0.06)] lg:w-[72px] lg:p-3">
-          <div className="flex items-center justify-between lg:flex-col lg:justify-start lg:gap-6">
-            <Link href="/" aria-label="Dashboard" className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-[#1E2530] text-lg font-extrabold shadow-sm transition hover:shadow-md active:scale-[0.98]">Q</Link>
-            <nav className="flex gap-2 lg:mt-4 lg:flex-col">
+        <aside className="sticky top-0 z-30 w-full shrink-0 bg-[#1E2530] p-2.5 text-white shadow-[inset_-1px_0_0_rgba(255,255,255,0.06)] sm:p-3 lg:sticky lg:top-0 lg:h-screen lg:w-[72px] lg:p-3">
+          <div className="flex items-center gap-3 sm:justify-between lg:flex-col lg:items-center lg:justify-start lg:gap-6">
+            <Link href="/" aria-label="Dashboard" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-[#1E2530] text-lg font-extrabold shadow-sm transition hover:shadow-md active:scale-[0.98] sm:h-11 sm:w-11">Q</Link>
+            <nav className="flex flex-1 gap-1.5 overflow-x-auto scrollbar-none sm:gap-2 lg:mt-4 lg:flex-col lg:overflow-visible">
               {moduleList.map((module) => (
                 <button
                   key={module.key}
                   type="button"
                   aria-label={module.label}
                   onClick={() => { setActiveModule(module.key); setPage(1); setApprovalOpen(false); setShowNewForm(false); setEditingRecordId(null); setSelectedRecordId(null); syncUrl(`/${modulePath(module.key)}`); }}
-                  className={`group flex h-11 w-11 items-center justify-center rounded-2xl border transition-all duration-200 ${
+                  className={`group flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-[11px] transition-all duration-200 sm:h-11 sm:w-11 sm:rounded-2xl ${
                     activeModule === module.key
                       ? "bg-white text-[#1E2530] border-white shadow-md scale-[1.02]"
                       : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
@@ -648,21 +648,24 @@ export default function Home({
                 </button>
               ))}
             </nav>
-            <div className="hidden lg:mt-auto lg:flex lg:flex-col lg:gap-2">
-              <Link href="/admin/team" className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-center text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white">
+            <div className="flex shrink-0 items-center gap-2 lg:mt-auto lg:flex-col lg:gap-2">
+              <Link href="/admin/team" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
                 Admin
+              </Link>
+              <Link href="/committees" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:hidden">
+                Teams
               </Link>
             </div>
           </div>
         </aside>
 
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
-          <header className="animate-in mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.06)] backdrop-blur-sm md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Quality management system</p>
-              <h1 className="mt-1 text-2xl font-bold text-slate-900">{dashboardRole === "top-authority" ? "Executive Dashboard" : dashboardRole === "staff" ? "My Dashboard" : "Team Dashboard"}</h1>
+        <main className="flex-1 min-w-0 p-3 sm:p-4 md:p-6 lg:p-8">
+          <header className="animate-in mb-4 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/90 p-3 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.06)] backdrop-blur-sm sm:mb-6 sm:gap-4 sm:p-4 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:text-xs">Quality management system</p>
+              <h1 className="mt-1 text-xl font-bold leading-tight text-slate-900 sm:text-2xl">{dashboardRole === "top-authority" ? "Executive Dashboard" : dashboardRole === "staff" ? "My Dashboard" : "Team Dashboard"}</h1>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+            <div className="flex w-full flex-wrap items-center gap-2 text-sm text-slate-600 md:w-auto">
               <select
                 value={viewerId}
                 disabled
@@ -757,19 +760,20 @@ export default function Home({
 
           <Dashboard viewerId={viewerId} profiles={profiles} records={records} role={dashboardRole} />
 
-          <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <h2 className="text-lg font-semibold text-slate-900">{moduleConfig[activeModule].label}</h2>
-              <div className="flex flex-wrap items-center gap-2">
+          <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-3 sm:mt-6 sm:p-4">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-base font-semibold text-slate-900 sm:text-lg">{moduleConfig[activeModule].label}</h2>
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <input
                   aria-label="Search records"
                   ref={searchInputRef}
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search all fields"
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm sm:w-auto"
                 />
-                <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                  <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
                   <option value="all">All statuses</option>
                   <option value="open">Open</option>
                   {statusOptions.map((option: string) => (
@@ -800,8 +804,9 @@ export default function Home({
                     ＋ New record
                   </Button>
                 )}
+                </div>
+              </div>
             </div>
-          </div>
 
             {(showNewForm || editingRecordId) && (
               <div className="mb-4">

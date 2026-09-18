@@ -131,7 +131,7 @@ export function ApprovalPanel({
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex max-h-[calc(100vh-2rem)] w-[420px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+    <div className="fixed inset-x-3 bottom-3 z-50 flex max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-[420px] sm:max-w-[calc(100vw-2rem)]">
       <div className="flex items-center gap-3 border-b border-slate-200 bg-[#EEF2FA] px-4 py-3">
         <ModuleIcon moduleKey={moduleKey} />
         <div className="min-w-0 flex-1">

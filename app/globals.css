@@ -90,3 +90,16 @@ textarea:focus-visible {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

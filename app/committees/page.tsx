@@ -146,8 +146,8 @@ export default function CommitteesPage() {
   const loading = status === "loading";
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
-      <div className="flex items-center justify-between gap-3">
+    <div className="space-y-4 p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Committees & Clubs</h1>
           <p className="mt-1 text-sm text-slate-600">
@@ -171,7 +171,7 @@ export default function CommitteesPage() {
         />
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">
         {loading || (!rows.length && <DataTable rows={[]} columns={columns} />)}
         {!loading && rows.length > 0 && (
           <DataTable

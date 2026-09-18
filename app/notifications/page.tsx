@@ -43,8 +43,8 @@ export default function NotificationsPage() {
   const unread = notifications.filter((item) => !item.read).length;
 
   return (
-    <main className="min-h-screen bg-[#EEF2FA] p-6 text-slate-800">
-      <section className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6">
+    <main className="min-h-screen bg-[#EEF2FA] p-3 sm:p-6 text-slate-800">
+      <section className="mx-auto w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div>
             <Link href="/" className="text-sm text-slate-500">Back to dashboard</Link>

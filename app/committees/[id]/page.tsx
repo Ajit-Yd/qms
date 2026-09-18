@@ -257,10 +257,10 @@ export default function CommitteeDetailPage() {
   };
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-4 p-3 sm:space-y-6 sm:p-4 md:p-6">
       {/* Committee Header */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
-        <div className="mb-4 flex items-start justify-between gap-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Link href="/committees" className="text-sm text-slate-500">← All committees</Link>
             <h1 className="mt-2 text-2xl font-bold text-slate-900">{committee.name}</h1>
@@ -337,7 +337,7 @@ export default function CommitteeDetailPage() {
           </form>
         )}
 
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-slate-50 p-3">
             <p className="text-xs font-medium uppercase text-slate-500">Members</p>
             <p className="mt-1 text-xl font-bold text-slate-900">{memberRows.length}</p>

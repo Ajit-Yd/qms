@@ -49,7 +49,7 @@ export default function ProfilePage() {
 
   if (notFound) {
     return (
-      <main className="min-h-screen bg-[#EEF2FA] p-6 text-slate-800">
+      <main className="min-h-screen bg-[#EEF2FA] p-3 sm:p-6 text-slate-800">
         <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 text-center">
           <p className="text-slate-600">Profile not found.</p>
           <Link href="/" className="mt-4 inline-block text-sm font-medium text-slate-600 hover:text-slate-900">Back to dashboard</Link>
@@ -65,9 +65,9 @@ export default function ProfilePage() {
   const { profile, manager, directReports, totalSubordinates, memberships } = data;
 
   return (
-    <main className="min-h-screen bg-[#EEF2FA] p-6 text-slate-800">
-      <div className="mx-auto max-w-3xl space-y-6">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+    <main className="min-h-screen bg-[#EEF2FA] p-3 sm:p-6 text-slate-800">
+      <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
           <Button variant="ghost" size="sm" onClick={() => router.back()} className="-ml-2">← Back</Button>
           <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -96,12 +96,12 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
           <ProfileDisplay profile={profile} profiles={profiles} memberships={memberships} />
         </div>
 
         {directReports.length > 0 && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
             <h2 className="mb-3 text-lg font-semibold text-slate-900">Direct reports</h2>
             <ul className="space-y-2">
               {directReports.map((report) => (
@@ -120,7 +120,7 @@ export default function ProfilePage() {
         )}
 
         {manager && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6">
             <h2 className="mb-3 text-lg font-semibold text-slate-900">Manager</h2>
             <Link href={`/profiles/${manager.id}`} className="flex items-center justify-between rounded-xl border border-slate-200 p-3 text-sm hover:bg-slate-50">
               <span className="font-medium text-slate-800">{manager.name}</span>
