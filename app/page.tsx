@@ -799,9 +799,30 @@ export default function Home({
             </div>
           )}
 
-          <Dashboard viewerId={viewerId} profiles={profiles} records={records} role={dashboardRole} />
+          <Dashboard
+            viewerId={viewerId}
+            profiles={profiles}
+            records={records}
+            role={dashboardRole}
+            onModuleSelect={(m) => {
+              setActiveModule(m);
+              setPage(1);
+              setApprovalOpen(false);
+              setShowNewForm(false);
+              syncUrl(`/${modulePath(m)}`);
+              setTimeout(() => document.querySelector('section.mt-4')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+            }}
+            onRecordSelect={(r) => {
+              const m = (r.module as ModuleKey) ?? activeModule;
+              setActiveModule(m);
+              setSelectedRecordId(String(r.id));
+              setApprovalOpen(true);
+              setShowNewForm(false);
+              syncUrl(`/${modulePath(m)}/${r.id}`);
+            }}
+          />
 
-          <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-3 sm:mt-6 sm:p-4">
+          <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-3 dark:bg-slate-800 dark:border-slate-700 sm:mt-6 sm:p-4">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-base font-semibold text-slate-900 sm:text-lg">{moduleConfig[activeModule].label}</h2>
               <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
@@ -840,11 +861,25 @@ export default function Home({
                 >
                   Reset
                 </Button>
-                {profiles.some((profile) => profile.id === viewerId) && canCreateRecords(viewerId, profiles) && (
-                  <Button variant="primary" size="md" onClick={() => { setShowNewForm(true); setEditingRecordId(null); setSelectedRecordId(null); setApprovalOpen(false); syncUrl(`/${modulePath(activeModule)}/new`); }}>
-                    ＋ New record
-                  </Button>
-                )}
+                <Button
+                  variant="primary"
+                  size="md"
+                  disabled={!canCreateRecords(viewerId, profiles)}
+                  title={!canCreateRecords(viewerId, profiles) ? "Monitor-only role cannot create records" : undefined}
+                  onClick={() => {
+                    if (!canCreateRecords(viewerId, profiles)) {
+                      setActionError("Monitor-only role (top-authority) cannot create records — use Deputy or Lead");
+                      return;
+                    }
+                    setShowNewForm(true);
+                    setEditingRecordId(null);
+                    setSelectedRecordId(null);
+                    setApprovalOpen(false);
+                    syncUrl(`/${modulePath(activeModule)}/new`);
+                  }}
+                >
+                  ＋ New record
+                </Button>
                 </div>
               </div>
             </div>
