@@ -15,7 +15,6 @@ export interface SuccessionSummary {
   recordsToTransferCount: number;
   committeeMembershipsCount: number;
   committeeHeadRolesCount: number;
-  totalImpact: number;
 }
 
 export function validateSuccession(
@@ -75,7 +74,6 @@ export async function generateSuccessionSummary(
     recordsToTransferCount,
     committeeMembershipsCount,
     committeeHeadRolesCount,
-    totalImpact: directReportsCount + recordsToTransferCount + committeeMembershipsCount,
   };
 }
 
