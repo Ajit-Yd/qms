@@ -21,10 +21,15 @@ model Profile {
   createdAt   DateTime      @default(now())
 
   documentAssignments       Document[]      @relation("DocumentAssignedTo")
+  documentCreatedBy         Document[]      @relation("DocumentAssignedBy")
   capaAssignments           Capa[]          @relation("CapaAssignedTo")
+  capaCreatedBy             Capa[]          @relation("CapaAssignedBy")
   nonconformanceAssignments Nonconformance[] @relation("NonconformanceAssignedTo")
+  nonconformanceCreatedBy   Nonconformance[] @relation("NonconformanceAssignedBy")
   auditAssignments          Audit[]         @relation("AuditAssignedTo")
+  auditCreatedBy            Audit[]          @relation("AuditAssignedBy")
   trainingAssignments       Training[]      @relation("TrainingAssignedTo")
+  trainingCreatedBy         Training[]      @relation("TrainingAssignedBy")
   
   committeeCreations     Committee[]     @relation("CommitteeCreatedBy")
   committeeMemberships   CommitteeMembership[]
@@ -39,12 +44,15 @@ model Document {
   title     String
   assignedTo String
   assigned  Profile  @relation("DocumentAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  assignedBy String?
+  assignedByProfile Profile? @relation("DocumentAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
   status    String
   revision  String
   updated   DateTime @default(now())
   deletedAt DateTime?
 
   @@index([assignedTo])
+  @@index([assignedBy])
   @@index([deletedAt])
 }
 
@@ -53,6 +61,8 @@ model Capa {
   title       String
   assignedTo  String
   assigned    Profile   @relation("CapaAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  assignedBy  String?
+  assignedByProfile Profile? @relation("CapaAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
   priority    String
   status      String
   dueDate     DateTime?
@@ -60,6 +70,7 @@ model Capa {
   deletedAt   DateTime?
 
   @@index([assignedTo])
+  @@index([assignedBy])
   @@index([deletedAt])
 }
 
@@ -68,6 +79,8 @@ model Nonconformance {
   title       String
   assignedTo  String
   assigned    Profile   @relation("NonconformanceAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  assignedBy  String?
+  assignedByProfile Profile? @relation("NonconformanceAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
   source      String
   severity    String
   status      String
@@ -75,6 +88,7 @@ model Nonconformance {
   deletedAt   DateTime?
 
   @@index([assignedTo])
+  @@index([assignedBy])
   @@index([deletedAt])
 }
 
@@ -83,11 +97,14 @@ model Audit {
   title       String
   assignedTo  String
   assigned    Profile   @relation("AuditAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  assignedBy  String?
+  assignedByProfile Profile? @relation("AuditAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
   status      String
   date        DateTime  @default(now())
   deletedAt   DateTime?
 
   @@index([assignedTo])
+  @@index([assignedBy])
   @@index([deletedAt])
 }
 
@@ -99,9 +116,12 @@ model Training {
   dueDate     DateTime?
   assignedTo  String
   assigned    Profile   @relation("TrainingAssignedTo", fields: [assignedTo], references: [id], onDelete: Cascade)
+  assignedBy  String?
+  assignedByProfile Profile? @relation("TrainingAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
   deletedAt   DateTime?
 
   @@index([assignedTo])
+  @@index([assignedBy])
   @@index([deletedAt])
 }
 

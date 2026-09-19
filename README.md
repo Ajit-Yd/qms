@@ -1,12 +1,13 @@
 # QMS — Quality Management System
 
-A full-stack quality management app: teams track work records (Documents, CAPAs, Non-conformances, Audits, Training) through an approval workflow, manage committees and tasks, and get notified in-app.
+A full-stack quality management app: teams track work records (Documents, CAPAs, Non-conformances, Audits, Training) through an approval workflow, manage committees and tasks, and get notified in-app and by email (Resend).
 
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack) + React 19 + TypeScript strict
 - **Prisma 7** + **Neon PostgreSQL** (`@prisma/adapter-pg`)
 - **NextAuth.js v4** (Credentials, JWT sessions)
+- **Resend** (transactional email via single helper `src/lib/email.ts:sendEmail`)
 - **Tailwind v4**
 
 ## Repository layout
@@ -37,6 +38,8 @@ Set env vars in `.env.local` (see `.env.local.example`):
 DATABASE_URL=postgresql://...
 NEXTAUTH_SECRET=<32+ chars>
 NEXTAUTH_URL=http://localhost:3000
+RESEND_API_KEY=re_...        # optional — enables email (in-app always works)
+RESEND_FROM_EMAIL="QMS Notifications <no-reply@yourdomain.com>"
 ```
 
 ## Seed data

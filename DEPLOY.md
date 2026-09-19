@@ -8,6 +8,8 @@ Set these on your hosting platform (Vercel, Railway, etc.):
 DATABASE_URL=postgresql://neondb_owner:...@ep-....us-east-2.aws.neon.tech/neondb?sslmode=require
 NEXTAUTH_SECRET=<any long random string, 32+ chars>
 NEXTAUTH_URL=https://your-production-domain.com
+RESEND_API_KEY=re_...          # set to enable email (single helper src/lib/email.ts)
+RESEND_FROM_EMAIL="QMS Notifications <no-reply@yourdomain.com>"   # must be verified in Resend
 ```
 
 **Never commit `.env.local`** to version control.

@@ -98,10 +98,12 @@ export function createDataForModule(module: ModuleKey, body: Record<string, unkn
   const statusErr = validateStatus(status);
   if (statusErr) return { error: statusErr };
 
+  const assignedBy = userId;
+
   if (module === "documents") {
     const title = String(body.title || "Untitled document").trim();
     if (!title) return { error: "Title is required" };
-    return { title, assignedTo, status, revision: String(body.revision || "1") };
+    return { title, assignedTo, assignedBy, status, revision: String(body.revision || "1") };
   }
   if (module === "capa") {
     const title = String(body.title || "Untitled CAPA").trim();
@@ -110,7 +112,7 @@ export function createDataForModule(module: ModuleKey, body: Record<string, unkn
     if (!ALLOWED_PRIORITY.has(priority)) return { error: `Invalid priority: ${priority}` };
     const dueDate = parseDate(body.dueDate);
     if (body.dueDate && !dueDate) return { error: "Invalid dueDate" };
-    return { title, assignedTo, status, priority, dueDate };
+    return { title, assignedTo, assignedBy, status, priority, dueDate };
   }
   if (module === "nonconformances") {
     const title = String(body.title || "Untitled NCR").trim();
@@ -121,14 +123,14 @@ export function createDataForModule(module: ModuleKey, body: Record<string, unkn
     if (!ALLOWED_SEVERITY.has(severity)) return { error: `Invalid severity: ${severity}` };
     const date = parseDate(body.date) ?? new Date();
     if (body.date && !parseDate(body.date)) return { error: "Invalid date" };
-    return { title, assignedTo, status, source, severity, date };
+    return { title, assignedTo, assignedBy, status, source, severity, date };
   }
   if (module === "audits") {
     const title = String(body.title || "Untitled audit").trim();
     if (!title) return { error: "Title is required" };
     const date = parseDate(body.date) ?? new Date();
     if (body.date && !parseDate(body.date)) return { error: "Invalid date" };
-    return { title, assignedTo, status, date };
+    return { title, assignedTo, assignedBy, status, date };
   }
   const course = String(body.course || body.title || "General training").trim();
   if (!course) return { error: "Course is required" };
@@ -138,6 +140,7 @@ export function createDataForModule(module: ModuleKey, body: Record<string, unkn
     employee: String(body.employee || body.assignedTo || userId),
     course,
     assignedTo,
+    assignedBy,
     status,
     dueDate,
   };
@@ -172,6 +175,36 @@ export async function createModuleRecord(module: ModuleKey, body: Record<string,
       comment: `${moduleApiConfig[module].recordType} created`,
     },
   });
+
+  // Assignment notification — if assigned to someone else, notify assignee
+  const createdAssignedTo = (created as any).assignedTo as string;
+  if (createdAssignedTo && createdAssignedTo !== userId) {
+    const assigner = getProfileById(userId, profiles);
+    const title = (created as any).title ?? (created as any).course ?? "Untitled";
+    const dueDate = (created as any).dueDate ? new Date((created as any).dueDate).toISOString() : undefined;
+    const url = `/${moduleApiConfig[module].path}/${(created as any).id}`;
+    // Fire-and-forget, never blocks creation
+    sendNotification(
+      {
+        type: "superior_assignment",
+        recipientId: createdAssignedTo,
+        senderName: assigner?.name ?? "Someone",
+        recordTitle: String(title),
+        recordType: moduleApiConfig[module].recordType as any,
+        dueDate,
+        recordUrl: url,
+      },
+      {
+        userId: createdAssignedTo,
+        type: "superior_assignment",
+        title: `New assignment: ${title}`,
+        message: `${assigner?.name ?? "Someone"} assigned you "${title}"`,
+        relatedId: (created as any).id,
+        relatedType: moduleApiConfig[module].recordType,
+        recordUrl: url,
+      }
+    ).catch((e) => console.warn("Assignment notification failed (non-blocking):", e));
+  }
 
   return NextResponse.json(
     { [module === "documents" ? "document" : module === "capa" ? "capa" : "record"]: normalizeRecord(module, created as Record<string, unknown>), historyEntry },
@@ -246,11 +279,50 @@ export async function updateModuleRecord(
   }
   if (module === "documents") data.updated = new Date();
 
+  // Track assignedTo change for notification (if body contains new assignee)
+  const newAssignedTo = body.assignedTo ? String(body.assignedTo) : null;
+  const oldAssignedTo = (record as any).assignedTo as string | null;
+  const assignedToChanged = newAssignedTo && newAssignedTo !== oldAssignedTo;
+  if (assignedToChanged) {
+    if (!getSubordinateIds(userId, profiles).includes(newAssignedTo) && newAssignedTo !== userId) {
+      return NextResponse.json({ error: "Forbidden: cannot assign outside your hierarchy" }, { status: 403 });
+    }
+    data.assignedTo = newAssignedTo;
+    // Keep original assignedBy if already set, otherwise set to updater? Keep original.
+  }
+
   const updated = await prismaForModule(module).update({
     where: { id },
     data: data as never,
     include: assignedInclude(),
   });
+
+  if (assignedToChanged && newAssignedTo) {
+    const assigner = getProfileById(userId, profiles);
+    const title = (updated as any).title ?? (updated as any).course ?? "Untitled";
+    const dueDate = (updated as any).dueDate ? new Date((updated as any).dueDate).toISOString() : undefined;
+    const url = `/${moduleApiConfig[module].path}/${id}`;
+    sendNotification(
+      {
+        type: "superior_assignment",
+        recipientId: newAssignedTo,
+        senderName: assigner?.name ?? "Someone",
+        recordTitle: String(title),
+        recordType: moduleApiConfig[module].recordType as any,
+        dueDate,
+        recordUrl: url,
+      },
+      {
+        userId: newAssignedTo,
+        type: "superior_assignment",
+        title: `Reassigned: ${title}`,
+        message: `${assigner?.name ?? "Someone"} reassigned you "${title}"`,
+        relatedId: id,
+        relatedType: moduleApiConfig[module].recordType,
+        recordUrl: url,
+      }
+    ).catch((e) => console.warn("Reassignment notification failed (non-blocking):", e));
+  }
 
   return NextResponse.json({
     [module === "documents" ? "document" : module === "capa" ? "capa" : "record"]: normalizeRecord(module, updated as Record<string, unknown>),
@@ -378,6 +450,46 @@ export async function transitionModuleRecord(
         recordUrl: url,
       }
     ).catch((error) => console.warn("Failed to send notification:", error));
+  }
+
+  // Completion notification to original assigner (assignedBy) when status becomes completed
+  const completedStatuses = new Set(["Approved", "Closed", "Done", "Complete"]);
+  if (completedStatuses.has(toStatus)) {
+    // assignedBy is reliable; fallback to first history entry's changedBy if null
+    let originalAssignerId: string | null = (record as any).assignedBy ?? null;
+    if (!originalAssignerId) {
+      const firstHistory = await prisma.recordHistory.findFirst({
+        where: { recordType: moduleApiConfig[module].recordType, recordId: id },
+        orderBy: { createdAt: "asc" },
+      });
+      originalAssignerId = firstHistory?.changedBy ?? null;
+    }
+    if (originalAssignerId && originalAssignerId !== userId) {
+      const originalAssigner = getProfileById(originalAssignerId, profiles);
+      const completer = getProfileById(userId, profiles);
+      if (originalAssigner) {
+        const url = `/${moduleApiConfig[module].path}/${id}`;
+        sendNotification(
+          {
+            type: "approved",
+            recipientId: originalAssignerId,
+            senderName: completer?.name ?? actor?.name ?? "Someone",
+            recordTitle: title,
+            recordType: moduleApiConfig[module].recordType as any,
+            recordUrl: url,
+          },
+          {
+            userId: originalAssignerId,
+            type: "approved",
+            title: `Completed: ${title}`,
+            message: `${completer?.name ?? actor?.name ?? "Someone"} completed "${title}" (${toStatus})`,
+            relatedId: id,
+            relatedType: moduleApiConfig[module].recordType,
+            recordUrl: url,
+          }
+        ).catch((e) => console.warn("Completion notification failed (non-blocking):", e));
+      }
+    }
   }
 
   const itemKey = module === "documents" ? "document" : module === "capa" ? "capa" : "record";

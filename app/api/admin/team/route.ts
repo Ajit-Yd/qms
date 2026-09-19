@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
-import { isMonitorOnly, isTopAuthority, toPublicProfile } from "@/src/lib/permissions";
+import { getProfileById, isMonitorOnly, isTopAuthority, toPublicProfile } from "@/src/lib/permissions";
 import { prismaForModule } from "@/src/lib/qms-record-api";
 import { hashPassword } from "@/src/lib/passwords";
+import { sendNotification } from "@/src/lib/email";
 import type { ModuleKey } from "@/components/qms";
 
 export async function POST(request: Request) {
@@ -58,10 +59,36 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Forbidden: monitor-only role cannot reassign records." }, { status: 403 });
     }
     const moduleKey = body.module as ModuleKey;
+    const before = await prismaForModule(moduleKey).findUnique({ where: { id: body.recordId } });
     const record = await prismaForModule(moduleKey).update({
       where: { id: body.recordId },
       data: { assignedTo: body.assignedTo } as never,
     });
+    // Notify new assignee (admin reassignment)
+    if (before && (before as any).assignedTo !== body.assignedTo) {
+      const assigner = getProfileById(auth.userId, auth.profiles);
+      const title = (record as any).title ?? (record as any).course ?? body.recordId;
+      const url = `/${moduleKey === "capa" ? "capas" : moduleKey}/${body.recordId}`;
+      sendNotification(
+        {
+          type: "superior_assignment",
+          recipientId: body.assignedTo,
+          senderName: assigner?.name ?? "Admin",
+          recordTitle: String(title),
+          recordType: (moduleKey === "documents" ? "Document" : moduleKey === "capa" ? "Capa" : moduleKey === "nonconformances" ? "Nonconformance" : moduleKey === "audits" ? "Audit" : "Training") as any,
+          recordUrl: url,
+        },
+        {
+          userId: body.assignedTo,
+          type: "superior_assignment",
+          title: `Reassigned: ${title}`,
+          message: `${assigner?.name ?? "Admin"} reassigned you "${title}"`,
+          relatedId: body.recordId,
+          relatedType: String(moduleKey),
+          recordUrl: url,
+        }
+      ).catch((e) => console.warn("Reassignment notification failed:", e));
+    }
     return NextResponse.json({ ok: true, change: record });
   }
   return NextResponse.json({ error: "A profile or record assignment is required." }, { status: 400 });
