@@ -33,6 +33,7 @@ export default function CommitteesPage() {
   const [rows, setRows] = useState<CommitteeRow[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createError, setCreateError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -130,17 +131,19 @@ export default function CommitteesPage() {
   ];
 
   const handleCreateCommittee = async (values: { name: string; description: string }) => {
+    setCreateError("");
     const response = await fetch("/api/committees", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(values),
     });
     if (!response.ok) {
-      const error = await response.json();
-      console.error("Create committee failed:", error.error);
+      const error = await response.json().catch(() => ({}));
+      setCreateError(error.error ?? "Failed to create committee");
       return;
     }
     setShowCreateForm(false);
+    setCreateError("");
     void loadCommittees();
   };
 
@@ -169,10 +172,13 @@ export default function CommitteesPage() {
       </div>
 
       {showCreateForm && isManager && (
-        <CreateCommitteeForm
-          onSubmit={handleCreateCommittee}
-          onCancel={() => setShowCreateForm(false)}
-        />
+        <>
+          <CreateCommitteeForm
+            onSubmit={handleCreateCommittee}
+            onCancel={() => { setShowCreateForm(false); setCreateError(""); }}
+          />
+          {createError && <p className="mt-2 text-sm text-red-600">{createError}</p>}
+        </>
       )}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-4">

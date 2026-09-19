@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
-import { canManageCommittees } from "@/src/lib/permissions";
+import { canManageCommittees, getSubordinateIds } from "@/src/lib/permissions";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireSessionUser();
@@ -16,6 +16,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { profileId, roleInCommittee } = body;
   if (!profileId || !["head", "member"].includes(roleInCommittee)) {
     return NextResponse.json({ error: "Profile ID and valid role are required" }, { status: 400 });
+  }
+  // Enforce hierarchy: can only add subordinates (all levels)
+  if (!getSubordinateIds(auth.userId, auth.profiles).includes(profileId)) {
+    return NextResponse.json({ error: "Can only add subordinates (all levels) to committee" }, { status: 403 });
   }
   // Check existing membership + profile active
   const existing = await prisma.committeeMembership.findUnique({ where: { committeeId_profileId: { committeeId, profileId } } });

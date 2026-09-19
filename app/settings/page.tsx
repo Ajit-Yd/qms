@@ -12,6 +12,7 @@ export default function SettingsPage() {
   const { data: session, status } = useSession();
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [changing, setChanging] = useState(false);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [memberships, setMemberships] = useState<Array<{ id: string; roleInCommittee: string; committeeId: string; committeeName: string }>>([]);
 
@@ -45,18 +46,26 @@ export default function SettingsPage() {
 
   const changePassword = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (changing) return;
     setMessage("");
     setError("");
-    const form = new FormData(event.currentTarget);
-    const response = await fetch("/api/account/password", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ currentPassword: form.get("currentPassword"), newPassword: form.get("newPassword") }),
-    });
-    const result = await response.json();
-    if (!response.ok) { setError(result.error || "Unable to change password"); return; }
-    event.currentTarget.reset();
-    setMessage("Password updated.");
+    setChanging(true);
+    try {
+      const form = new FormData(event.currentTarget);
+      const response = await fetch("/api/account/password", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ currentPassword: form.get("currentPassword"), newPassword: form.get("newPassword") }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) { setError(result.error || "Unable to change password"); return; }
+      event.currentTarget.reset();
+      setMessage("Password updated.");
+    } catch {
+      setError("Network error");
+    } finally {
+      setChanging(false);
+    }
   };
 
   return (
@@ -79,7 +88,7 @@ export default function SettingsPage() {
           <form onSubmit={changePassword} className="space-y-3">
             <input required name="currentPassword" type="password" placeholder="Current password" aria-label="Current password" className="w-full rounded-xl border border-slate-200 px-3 py-2" />
             <input required minLength={8} name="newPassword" type="password" placeholder="New password (8+ characters)" aria-label="New password" className="w-full rounded-xl border border-slate-200 px-3 py-2" />
-            <Button type="submit" variant="primary" size="md">Update password</Button>
+            <Button type="submit" variant="primary" size="md" loading={changing} disabled={changing}>Update password</Button>
           </form>
           {message && <p className="mt-2 text-sm text-emerald-700">{message}</p>}
           {error && <p className="mt-2 text-sm text-red-700">{error}</p>}

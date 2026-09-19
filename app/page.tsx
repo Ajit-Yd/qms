@@ -316,6 +316,11 @@ export default function Home({
   const currentPage = Math.min(page, pageCount);
   const pagedRecords = visibleRecords.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  // Reset to first page when filters or module change (fix pagination stuck on empty page)
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter, specificFilter, activeModule]);
+
   const unreadNotifications = notifications.filter((item) => item.userId === viewerId && !item.read);
   const recordHistory = history.filter((item) => item.recordType === activeModule && item.recordId === currentRecord?.id);
   const recordComments = comments.filter((item) => item.recordType === activeModule && item.recordId === currentRecord?.id);
@@ -397,237 +402,137 @@ export default function Home({
   };
 
   const handleDeleteRecord = async (moduleKey: ModuleKey, recordId: string) => {
-    // For documents, use the API
-    if (moduleKey === "documents") {
-      try {
-        const response = await fetch(`/api/documents/${recordId}`, {
-          method: "DELETE",
-        });
-
-        if (response.ok) {
-          setRecords((prev) => ({
-            ...prev,
-            documents: (prev.documents ?? []).filter((doc) => doc.id !== recordId),
-          }));
-          if (selectedRecordId === recordId) {
-            setSelectedRecordId(null);
-            setApprovalOpen(false);
-          }
-        } else {
-          const delMsg = await response.text();
-          console.error("Failed to delete document:", delMsg);
-          try { const j = JSON.parse(delMsg); setActionError(j.error ?? "Delete failed"); } catch { setActionError(delMsg.slice(0,120)); }
+    try {
+      const response = await fetch(apiPath(moduleKey, recordId), { method: "DELETE" });
+      if (response.ok) {
+        setRecords((prev) => ({
+          ...prev,
+          [moduleKey]: (prev[moduleKey] ?? []).filter((r) => r.id !== recordId),
+        }));
+        if (selectedRecordId === recordId) {
+          setSelectedRecordId(null);
+          setApprovalOpen(false);
         }
-      } catch (error) {
-        console.error("Error deleting document:", error);
-        setActionError("Network error deleting document");
+      } else {
+        const delMsg = await response.text();
+        console.error("Failed to delete record:", delMsg);
+        try { const j = JSON.parse(delMsg); setActionError(j.error ?? "Delete failed"); } catch { setActionError(delMsg.slice(0,120) || "Delete failed"); }
       }
-      return;
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      setActionError("Network error deleting record");
     }
-
-    // For other modules, use in-memory logic
-    setRecords((previous) => ({
-      ...previous,
-      [moduleKey]: (previous[moduleKey] ?? []).map((record) =>
-        record.id === recordId
-          ? { ...record, deletedAt: new Date().toISOString() }
-          : record,
-      ),
-    }));
   };
 
   const handleUpdateRecord = async (moduleKey: ModuleKey, recordId: string, values: Record<string, string>) => {
-    // For documents, use the API
-    if (moduleKey === "documents") {
-      try {
-        const response = await fetch(`/api/documents/${recordId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: values.title,
-            revision: values.revision,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setRecords((prev) => ({
-            ...prev,
-            documents: (prev.documents ?? []).map((doc) =>
-              doc.id === recordId ? data.document : doc
-            ),
-          }));
-          setEditingRecordId(null);
-        } else {
-          const updMsg = await response.text();
-          console.error("Failed to update document:", updMsg);
-          try { const j = JSON.parse(updMsg); setActionError(j.error ?? "Update failed"); } catch { setActionError(updMsg.slice(0,120)); }
-        }
-      } catch (error) {
-        console.error("Error updating document:", error);
-      }
-      return;
-    }
-
-    // For other modules, use in-memory logic
-    setRecords((previous) => ({
-      ...previous,
-      [moduleKey]: (previous[moduleKey] ?? []).map((record) => {
-        if (record.id !== recordId) return record;
-        const next = { ...record };
-        Object.entries(values).forEach(([key, value]) => {
-          if (value) next[key] = value;
-        });
-        return next;
-      }),
-    }));
-    setEditingRecordId(null);
-  };
-
-  const handleWorkflow = async (moduleKey: ModuleKey, recordId: string, action: "submit" | "approve" | "revise", comment: string) => {
-    const record = (records[moduleKey] ?? []).find((item) => item.id === recordId);
-    if (!record) return;
-
-    // Documents submit through their own endpoint; other actions go through the shared record APIs
-    // so history, notifications, and emails are handled server-side for every module.
-    if (action !== "submit" || moduleKey === "documents") {
-      const endpoint =
-        action === "submit"
-          ? `/api/documents/${recordId}/submit`
-          : action === "approve"
-            ? "/api/records/approve"
-            : "/api/records/revise";
-
-      const recordType = {
-        documents: "Document",
-        capa: "Capa",
-        nonconformances: "Nonconformance",
-        audits: "Audit",
-        training: "Training",
-      }[moduleKey];
-
-      try {
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(
-            action === "submit"
-              ? { comment }
-              : action === "approve"
-                ? { recordId, recordType, assignedTo: record.assignedTo, title: record.title, comment }
-                : { recordId, recordType, assignedTo: record.assignedTo, feedback: comment }
-          ),
-        });
-        if (!response.ok) {
-          const wfMsg = await response.text();
-          console.error("Failed to perform workflow action:", wfMsg);
-          try { const j = JSON.parse(wfMsg); setActionError(j.error ?? "Workflow action failed"); } catch { setActionError(wfMsg.slice(0,120)); }
-          return;
-        }
+    try {
+      const payload: Record<string, string> = {};
+      for (const [k, v] of Object.entries(values)) if (v !== undefined && v !== "") payload[k] = v;
+      const response = await fetch(apiPath(moduleKey, recordId), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (response.ok) {
         const data = await response.json();
         const updated = data.document ?? data.capa ?? data.record;
         if (updated) {
           setRecords((prev) => ({
             ...prev,
-            [moduleKey]: (prev[moduleKey] ?? []).map((item) =>
-              item.id === recordId ? parseList(moduleKey, { records: [updated] })[0] : item
-            ),
+            [moduleKey]: (prev[moduleKey] ?? []).map((r) => (r.id === recordId ? parseList(moduleKey, { records: [updated] })[0] : r)),
           }));
         }
-        if (data.historyEntry) {
-          setHistory((prev) => [data.historyEntry, ...prev]);
-        }
-      } catch (error) {
-        console.error("Error performing workflow action:", error);
-        setActionError("Network error performing workflow action");
+        setEditingRecordId(null);
+      } else {
+        const updMsg = await response.text();
+        console.error("Failed to update record:", updMsg);
+        try { const j = JSON.parse(updMsg); setActionError(j.error ?? "Update failed"); } catch { setActionError(updMsg.slice(0,120) || "Update failed"); }
       }
-      return;
+    } catch (error) {
+      console.error("Error updating record:", error);
+      setActionError("Network error updating record");
     }
+  };
 
-    // Non-document submit has no server endpoint yet; keep the in-memory fallback.
-    setRecords((previous) => ({
-      ...previous,
-      [moduleKey]: (previous[moduleKey] ?? []).map((item) =>
-        item.id === recordId ? { ...item, status: "Pending" } : item,
-      ),
-    }));
-
-    setHistory((previous) => [
-      {
-        id: `h-${Date.now()}`,
-        recordType: moduleKey,
-        recordId,
-        fromStatus: record.status,
-        toStatus: "Pending",
-        changedBy: viewerId,
-        comment,
-        timestamp: new Date().toISOString(),
-      },
-      ...previous,
-    ]);
-
-    setNotifications((previous) => [
-      {
-        id: `n-${Date.now()}`,
-        userId: record.assignedTo,
-        message: `Your ${moduleConfig[moduleKey].label} record was submitted for review.`,
-        link: `/${modulePath(moduleKey)}`,
-        read: false,
-        createdAt: new Date().toISOString(),
-      },
-      ...previous,
-    ]);
+  const handleWorkflow = async (moduleKey: ModuleKey, recordId: string, action: "submit" | "approve" | "revise", comment: string) => {
+    const record = (records[moduleKey] ?? []).find((item) => item.id === recordId);
+    if (!record) return;
+    const endpoint =
+      action === "submit"
+        ? apiPath(moduleKey, recordId, "submit")
+        : action === "approve"
+          ? "/api/records/approve"
+          : "/api/records/revise";
+    const recordType = {
+      documents: "Document",
+      capa: "Capa",
+      nonconformances: "Nonconformance",
+      audits: "Audit",
+      training: "Training",
+    }[moduleKey];
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          action === "submit"
+            ? { comment }
+            : action === "approve"
+              ? { recordId, recordType, assignedTo: record.assignedTo, title: record.title, comment }
+              : { recordId, recordType, assignedTo: record.assignedTo, feedback: comment }
+        ),
+      });
+      if (!response.ok) {
+        const wfMsg = await response.text();
+        console.error("Failed to perform workflow action:", wfMsg);
+        try { const j = JSON.parse(wfMsg); setActionError(j.error ?? "Workflow action failed"); } catch { setActionError(wfMsg.slice(0,120) || "Workflow action failed"); }
+        return;
+      }
+      const data = await response.json();
+      const updated = data.document ?? data.capa ?? data.record;
+      if (updated) {
+        setRecords((prev) => ({
+          ...prev,
+          [moduleKey]: (prev[moduleKey] ?? []).map((item) => (item.id === recordId ? parseList(moduleKey, { records: [updated] })[0] : item)),
+        }));
+      }
+      if (data.historyEntry) setHistory((prev) => [data.historyEntry, ...prev]);
+    } catch (error) {
+      console.error("Error performing workflow action:", error);
+      setActionError("Network error performing workflow action");
+    }
   };
 
   const addComment = async (body: string) => {
     if (!currentRecord || !body.trim()) return;
-
-    // For documents, use the API
-    if (activeModule === "documents") {
-      try {
-        const response = await fetch(`/api/documents/${currentRecord.id}/comments`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ body }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setComments((prev) => [
-            {
-              id: data.comment.id,
-              recordType: activeModule,
-              recordId: currentRecord.id,
-              author: viewerId,
-              body,
-              timestamp: new Date().toISOString(),
-            },
-            ...prev,
-          ]);
-        } else {
-          const cMsg = await response.text();
-          console.error("Failed to add comment:", cMsg);
-          try { const j = JSON.parse(cMsg); setActionError(j.error ?? "Failed to add comment"); } catch { setActionError(cMsg.slice(0,120)); }
-        }
-      } catch (error) {
-        console.error("Error adding comment:", error);
-        setActionError("Network error adding comment");
+    try {
+      const response = await fetch(apiPath(activeModule, currentRecord.id, "comments"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setComments((prev) => [
+          {
+            id: data.comment.id,
+            recordType: activeModule,
+            recordId: currentRecord.id,
+            author: viewerId,
+            body,
+            timestamp: data.comment.createdAt ?? new Date().toISOString(),
+          },
+          ...prev,
+        ]);
+      } else {
+        const cMsg = await response.text();
+        console.error("Failed to add comment:", cMsg);
+        try { const j = JSON.parse(cMsg); setActionError(j.error ?? "Failed to add comment"); } catch { setActionError(cMsg.slice(0,120) || "Failed to add comment"); }
       }
-      return;
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      setActionError("Network error adding comment");
     }
-
-    // For other modules, use in-memory logic
-    setComments((previous) => [
-      {
-        id: `c-${Date.now()}`,
-        recordType: activeModule,
-        recordId: currentRecord.id,
-        author: viewerId,
-        body,
-        timestamp: new Date().toISOString(),
-      },
-      ...previous,
-    ]);
   };
 
   const statusOptions = getStatusOptions(activeModule);
@@ -842,7 +747,7 @@ export default function Home({
                     <option key={option} value={option}>{option}</option>
                   ))}
                 </select>
-                {activeModule !== "documents" && (
+                {activeModule !== "documents" && activeModule !== "training" && moduleSpecificOptions.length > 1 && (
                   <select value={specificFilter} onChange={(event) => setSpecificFilter(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
                     <option value="all">All filters</option>
                     {moduleSpecificOptions.map((option: string) => (

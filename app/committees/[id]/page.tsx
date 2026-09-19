@@ -31,7 +31,7 @@ type CommitteeDetail = {
   }>;
 };
 
-type MemberRow = { id: string; name: string; roleTitle: string; role: string };
+type MemberRow = { id: string; profileId: string; name: string; roleTitle: string; role: string };
 type TaskRow = { id: string; title: string; assignedTo: string; status: string; dueDate: string };
 
 export default function CommitteeDetailPage() {
@@ -117,7 +117,7 @@ export default function CommitteeDetailPage() {
   const tasks = committee.tasks ?? [];
 
   const canManage = canManageCommittees(viewerId, profiles);
-  const canAssignTasks = canAssignCommitteeTask(viewerId, committeeId, profiles);
+  const canAssignTasks = canAssignCommitteeTask(viewerId, committeeId, profiles, memberships.map((m) => ({ profileId: m.profileId, committeeId, roleInCommittee: m.roleInCommittee })));
 
   const profileName = (id: string) => profiles.find((p) => p.id === id)?.name || "Unknown";
 
@@ -125,6 +125,7 @@ export default function CommitteeDetailPage() {
     const profile = membership.profile;
     return {
       id: membership.id,
+      profileId: membership.profileId,
       name: profile?.name || profileName(membership.profileId),
       roleTitle: profile?.roleTitle || "Team member",
       role: membership.roleInCommittee === "head" ? "Committee Head" : "Member",
@@ -179,10 +180,7 @@ export default function CommitteeDetailPage() {
   const assignableProfilesForAdd = profiles.filter((p) => subordinateIds.includes(p.id));
   const assignableCommitteeMembers = (() => {
     const subsSet = new Set(subordinateIds);
-    return memberRows.filter((m) => {
-      const pid = memberships.find((ms) => ms.id === m.id)?.profileId;
-      return pid ? subsSet.has(pid) : false;
-    });
+    return memberRows.filter((m) => subsSet.has(m.profileId));
   })();
 
   const handleAddMember = async (values: { profileId: string; roleInCommittee: string }) => {
@@ -192,11 +190,12 @@ export default function CommitteeDetailPage() {
       body: JSON.stringify(values),
     });
     if (!response.ok) {
-      const error = await response.json();
-      console.error("Add member failed:", error.error);
+      const error = await response.json().catch(() => ({}));
+      setPageError(error.error ?? "Failed to add member");
       return;
     }
     setShowAddMember(false);
+    setPageError("");
     void refetch();
   };
 
@@ -212,11 +211,12 @@ export default function CommitteeDetailPage() {
       body: JSON.stringify(values),
     });
     if (!response.ok) {
-      const error = await response.json();
-      console.error("Assign task failed:", error.error);
+      const error = await response.json().catch(() => ({}));
+      setPageError(error.error ?? "Failed to assign task");
       return;
     }
     setShowAssignTask(false);
+    setPageError("");
     void refetch();
   };
 

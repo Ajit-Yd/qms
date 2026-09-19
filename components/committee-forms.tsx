@@ -84,7 +84,7 @@ export function AddMemberForm({
     });
   };
 
-  const alreadyMembers = committeeMembers.map((m) => m.id);
+  const alreadyMembers = committeeMembers.map((m: any) => (m as any).profileId ?? m.id);
   const availableToAdd = availableProfiles.filter((p) => !alreadyMembers.includes(p.id));
 
   return (
@@ -193,8 +193,8 @@ export function AssignTaskForm({
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
           >
             <option value="">-- Choose assignee --</option>
-            {committeeMembers.map((member) => (
-              <option key={member.id} value={member.id}>
+            {committeeMembers.map((member: any) => (
+              <option key={member.id} value={member.profileId ?? member.id}>
                 {member.name}
               </option>
             ))}
