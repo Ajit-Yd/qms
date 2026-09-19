@@ -22,8 +22,7 @@
     "next-auth": "^4.24.15",
     "prisma": "^7.9.1",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "resend": "^6.25.0"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

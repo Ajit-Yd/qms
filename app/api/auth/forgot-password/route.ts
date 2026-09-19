@@ -26,29 +26,11 @@ export async function POST(request: Request) {
     data: { profileId: profile.id, tokenHash, expiresAt },
   });
 
-  const resetUrl = `${process.env.NEXTAUTH_URL ?? "http://localhost:3000"}/reset-password?token=${rawToken}&email=${encodeURIComponent(email)}`;
+  // Email removed: log reset URL for dev, return generic success (in-app notification not needed for password reset)
+  console.log(`[password-reset] ${email}: token ${rawToken} expires ${expiresAt.toISOString()}`);
 
-  // Try to send email if configured; otherwise log for dev
-  if (process.env.RESEND_API_KEY) {
-    try {
-      const { Resend } = await import("resend");
-      const resend = new Resend(process.env.RESEND_API_KEY);
-      await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL ?? "QMS <onboarding@resend.dev>",
-        to: profile.email!,
-        subject: "Reset your QMS password",
-        html: `<p>Hi ${profile.name},</p><p>You requested a password reset. <a href="${resetUrl}">Click here to reset</a> (expires in 1 hour).</p><p>If you did not request this, ignore this email.</p>`,
-      });
-    } catch (e) {
-      console.error("Failed to send reset email:", e);
-    }
-  } else {
-    console.log(`[dev] Password reset link for ${email}: ${resetUrl}`);
-  }
-
-  // In non-production, return token for testing; never in production
   if (process.env.NODE_ENV !== "production") {
-    return NextResponse.json({ success: true, message: "Instructions sent if the account exists.", debugToken: rawToken, debugUrl: resetUrl });
+    return NextResponse.json({ success: true, message: "Instructions sent if the account exists.", debugToken: rawToken });
   }
   return NextResponse.json({ success: true, message: "If the account exists, instructions have been sent." });
 }

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     "Quality management system for documents, CAPAs, nonconformances, audits, training, and committees.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"

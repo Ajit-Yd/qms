@@ -8,8 +8,6 @@ Set these on your hosting platform (Vercel, Railway, etc.):
 DATABASE_URL=postgresql://neondb_owner:...@ep-....us-east-2.aws.neon.tech/neondb?sslmode=require
 NEXTAUTH_SECRET=<any long random string, 32+ chars>
 NEXTAUTH_URL=https://your-production-domain.com
-RESEND_API_KEY=re_...          # set to enable email
-RESEND_FROM_EMAIL="QMS Notifications <no-reply@yourdomain.com>"   # must be a sender verified in Resend
 ```
 
 **Never commit `.env.local`** to version control.
@@ -71,5 +69,4 @@ PORT=3000 node node_modules/next/dist/bin/next start
 
 ## 8. Known limitations
 
-- **Email delivers only to the account owner** while using `Onboarding <onboarding@resend.dev>` as the sender (verified live). To email every user: verify a domain at `resend.com/domains`, set `RESEND_FROM_EMAIL="QMS Notifications <no-reply@yourdomain.com>"`, restart, and set real inboxes on user profiles (Team admin → per-profile Email field). Seeded accounts use fake `@qms.local` addresses.
 - **5 npm audit highs** are all `mysql2` (transitive dep of Prisma, unused for PostgreSQL) — not exploitable
