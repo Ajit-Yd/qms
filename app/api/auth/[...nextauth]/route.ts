@@ -18,9 +18,9 @@ async function withRateLimit(req: Request, next: () => Promise<Response>): Promi
   return res;
 }
 
-export async function GET(req: Request) {
-  return withRateLimit(req, () => handler(req as any, {} as any));
+export async function GET(req: Request, ctx: { params: Promise<{ nextauth: string[] }> }) {
+  return withRateLimit(req, () => handler(req as any, ctx as any));
 }
-export async function POST(req: Request) {
-  return withRateLimit(req, () => handler(req as any, {} as any));
+export async function POST(req: Request, ctx: { params: Promise<{ nextauth: string[] }> }) {
+  return withRateLimit(req, () => handler(req as any, ctx as any));
 }
