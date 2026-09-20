@@ -4,9 +4,19 @@ import { prisma } from "@/src/lib/prisma";
 import { hashResetToken } from "@/src/lib/passwords";
 
 export async function POST(request: Request) {
+  const { getClientIp, rateLimit, rateLimitResponse } = await import("@/src/lib/rate-limit");
+  const ip = getClientIp(request);
+  const ipLimit = rateLimit(`forgot:${ip}`, 3, 60 * 60 * 1000);
+  if (!ipLimit.allowed) {
+    return NextResponse.json({ error: "Too many reset attempts. Try again later." }, { status: 429, headers: rateLimitResponse(ipLimit.remaining, ipLimit.resetMs) });
+  }
   const body = await request.json().catch(() => ({}));
   const email = String(body.email ?? "").trim().toLowerCase();
   if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
+  const emailLimit = rateLimit(`forgot:email:${email}`, 3, 60 * 60 * 1000);
+  if (!emailLimit.allowed) {
+    return NextResponse.json({ error: "Too many reset attempts for this email. Try again later." }, { status: 429, headers: rateLimitResponse(emailLimit.remaining, emailLimit.resetMs) });
+  }
 
   // Always return success to prevent enumeration; do work only if user exists & active
   const profile = await prisma.profile.findFirst({

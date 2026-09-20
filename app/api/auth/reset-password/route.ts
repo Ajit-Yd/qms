@@ -3,6 +3,12 @@ import { prisma } from "@/src/lib/prisma";
 import { hashResetToken, setPassword } from "@/src/lib/passwords";
 
 export async function POST(request: Request) {
+  const { getClientIp, rateLimit, rateLimitResponse } = await import("@/src/lib/rate-limit");
+  const ip = getClientIp(request);
+  const { allowed, remaining, resetMs } = rateLimit(`reset:${ip}`, 5, 60 * 60 * 1000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many reset attempts. Try again later." }, { status: 429, headers: rateLimitResponse(remaining, resetMs) });
+  }
   const body = await request.json().catch(() => ({}));
   const token = String(body.token ?? "").trim();
   const email = String(body.email ?? "").trim().toLowerCase();

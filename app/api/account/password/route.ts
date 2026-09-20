@@ -4,9 +4,19 @@ import { authOptions } from "@/src/lib/auth";
 import { changePassword } from "@/src/lib/passwords";
 
 export async function POST(request: Request) {
+  const { getClientIp, rateLimit, rateLimitResponse } = await import("@/src/lib/rate-limit");
+  const ip = getClientIp(request);
+  const { allowed, remaining, resetMs } = rateLimit(`pwd:${ip}`, 5, 15 * 60 * 1000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429, headers: rateLimitResponse(remaining, resetMs) });
+  }
   const session = await getServerSession(authOptions);
   const userId = session?.user && "id" in session.user ? String(session.user.id) : "";
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userLimit = rateLimit(`pwd:user:${userId}`, 5, 15 * 60 * 1000);
+  if (!userLimit.allowed) {
+    return NextResponse.json({ error: "Too many attempts for this account. Try again later." }, { status: 429, headers: rateLimitResponse(userLimit.remaining, userLimit.resetMs) });
+  }
 
   const body = await request.json().catch(() => ({}));
   const currentPassword = String(body.currentPassword ?? "");
