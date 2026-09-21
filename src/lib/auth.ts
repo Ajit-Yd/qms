@@ -19,19 +19,17 @@ export const authOptions: NextAuthOptions = {
         const password = String(credentials?.password ?? "");
         if (!email || !password) return null;
 
-        // Per-email brute-force protection: 5 attempts per 15 min
-        const { allowed } = rateLimit(`login:email:${email}`, 5, 15 * 60 * 1000);
-        if (!allowed) {
-          // Return null to show generic invalid credentials, but log
-          console.warn(`Rate limited login for ${email}`);
-          return null;
-        }
-
         const profile = await prisma.profile.findFirst({
           where: { email: { equals: email, mode: "insensitive" }, active: true },
         });
 
-        if (!profile || !(await verifyPassword(profile.id, password))) return null;
+        const isValid = profile ? await verifyPassword(profile.id, password) : false;
+        if (!isValid || !profile) {
+          // Only count failures toward rate limit (10 fails / 15min)
+          const { allowed } = rateLimit(`login:email:${email}`, 10, 15 * 60 * 1000);
+          if (!allowed) console.warn(`Rate limited login for ${email}`);
+          return null;
+        }
         return { id: profile.id, name: profile.name, email: profile.email ?? email };
       },
     }),
