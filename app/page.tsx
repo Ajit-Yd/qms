@@ -177,6 +177,19 @@ export default function Home({
     };
   }, [notificationOpen, accountOpen]);
 
+  // Prevent back button after logout from showing cached dashboard
+  useEffect(() => {
+    if (sessionStatus === "unauthenticated") {
+      // Replace history so back doesn't return to dashboard
+      window.history.replaceState(null, "", "/login");
+      const onPop = () => router.replace("/login");
+      window.addEventListener("popstate", onPop);
+      // Also force no-cache
+      if ("caches" in window) caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+      return () => window.removeEventListener("popstate", onPop);
+    }
+  }, [sessionStatus, router]);
+
   useEffect(() => {
     if (!viewerId) return;
     const load = async () => {
@@ -582,7 +595,7 @@ export default function Home({
         </aside>
 
         <main className="flex-1 min-w-0 p-3 pb-20 sm:p-4 sm:pb-20 md:p-6 lg:p-8 lg:pb-8 2xl:p-10">
-          <header className="animate-in sticky top-0 z-20 mb-4 flex flex-col gap-0 rounded-2xl border border-slate-200 bg-white/95 shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90 dark:border-slate-700 dark:bg-slate-900/95 dark:supports-[backdrop-filter]:bg-slate-900/90 sm:mb-6 sm:gap-0 lg:static lg:top-auto lg:z-auto">
+          <header className="animate-in mb-4 flex flex-col gap-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:mb-6 sm:gap-0 sm:p-4">
             {/* Row 1: Title + Bell/Avatar — always visible, compact on mobile */}
             <div className="flex items-center justify-between gap-2 p-3 sm:gap-3 sm:p-4">
               <div className="min-w-0 flex-1">

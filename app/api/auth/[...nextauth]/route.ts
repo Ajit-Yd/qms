@@ -8,15 +8,22 @@ const handler = NextAuth(authOptions);
 async function withRateLimit(req: Request, next: () => Promise<Response>): Promise<Response> {
   const url = new URL(req.url);
   const isCredentialsCallback = url.pathname.endsWith("/api/auth/callback/credentials") && req.method === "POST";
-  // Only rate-limit the actual login POST, not session/error/csrf
   if (!isCredentialsCallback) return next();
   const ip = getClientIp(req);
-  const { allowed, remaining, resetMs } = rateLimit(`login:${ip}`, 10, 15 * 60 * 1000);
+  // 20 attempts per 15min per IP — only failures count (cleared on success below)
+  const { allowed, remaining, resetMs } = rateLimit(`login:${ip}`, 20, 15 * 60 * 1000);
   if (!allowed) {
     return NextResponse.json({ error: "Too many login attempts. Try again in 15 minutes." }, { status: 429, headers: rateLimitResponse(remaining, resetMs) });
   }
   const res = await next();
-  Object.entries(rateLimitResponse(remaining, resetMs)).forEach(([k, v]) => res.headers.set(k, v));
+  // If login succeeded (302 redirect or 200 with no error), clear the IP counter
+  const isSuccess = res.status === 302 || (res.status === 200 && !res.headers.get("x-nextauth-error"));
+  if (isSuccess) {
+    const { clearRateLimit } = await import("@/src/lib/rate-limit");
+    clearRateLimit(`login:${ip}`);
+  } else {
+    Object.entries(rateLimitResponse(remaining, resetMs)).forEach(([k, v]) => res.headers.set(k, v));
+  }
   return res;
 }
 

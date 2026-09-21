@@ -30,6 +30,9 @@ export const authOptions: NextAuthOptions = {
           if (!allowed) console.warn(`Rate limited login for ${email}`);
           return null;
         }
+        // Success — clear any prior failure count for this email
+        const { clearRateLimit } = await import("@/src/lib/rate-limit");
+        clearRateLimit(`login:email:${email}`);
         return { id: profile.id, name: profile.name, email: profile.email ?? email };
       },
     }),

@@ -23,6 +23,10 @@ export function rateLimit(key: string, limit: number, windowMs: number): { allow
   return { allowed: false, remaining: 0, resetMs: entry.resetAt - now };
 }
 
+export function clearRateLimit(key: string): void {
+  store.delete(key);
+}
+
 export function getClientIp(request: Request): string {
   const fwd = request.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0]?.trim() || "unknown";
