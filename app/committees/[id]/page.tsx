@@ -260,6 +260,11 @@ export default function CommitteeDetailPage() {
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <Link href="/committees" className="text-sm text-slate-500">← All committees</Link>
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <Link href={`/meetings?committee=${committee.id}`} className="text-sm font-medium text-[#1D9E75] hover:underline">
+                Committee meetings
+              </Link>
+            </div>
             <h1 className="mt-2 text-2xl font-bold text-slate-900">{committee.name}</h1>
             {committee.description && !showEditForm && (
               <p className="mt-2 text-sm text-slate-600">{committee.description}</p>

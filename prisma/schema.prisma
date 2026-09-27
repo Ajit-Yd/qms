@@ -35,6 +35,8 @@ model Profile {
   committeeMemberships   CommitteeMembership[]
   committeeTaskAssignments CommitteeTask[] @relation("CommitteeTaskAssignedTo")
   committeeTaskAssignedBy  CommitteeTask[] @relation("CommitteeTaskAssignedBy")
+  meetingsOrganized     Meeting[]       @relation("MeetingOrganizer")
+  meetingAttendances     MeetingAttendee[]
 
   @@index([reportsTo])
 }
@@ -139,6 +141,7 @@ model Committee {
 
   memberships CommitteeMembership[]
   tasks       CommitteeTask[]
+  meetings    Meeting[]
 
   @@index([createdBy])
 }
@@ -182,6 +185,37 @@ model CommitteeTask {
   @@index([assignedTo])
   @@index([assignedBy])
   @@index([status])
+}
+
+model Meeting {
+  id          String   @id @default(cuid())
+  committeeId String
+  committee   Committee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
+  title       String
+  agenda      String?
+  notes       String?
+  scheduledAt DateTime
+  location    String?
+  linkUrl     String?
+  organizedBy String
+  organizer   Profile  @relation("MeetingOrganizer", fields: [organizedBy], references: [id], onDelete: Restrict)
+  attendees   MeetingAttendee[]
+  createdAt   DateTime @default(now())
+
+  @@index([committeeId])
+  @@index([scheduledAt])
+}
+
+model MeetingAttendee {
+  id        String   @id @default(cuid())
+  meetingId String
+  meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  attended  Boolean  @default(false)
+
+  @@unique([meetingId, profileId])
+  @@index([profileId])
 }
 
 model RecordHistory {

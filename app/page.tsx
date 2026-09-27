@@ -601,6 +601,9 @@ export default function Home({
               <Link href="/tasks" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
                 Tasks
               </Link>
+              <Link href="/meetings" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
+                Meetings
+              </Link>
               <Link href="/committees" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:hidden">
                 Teams
               </Link>
