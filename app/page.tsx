@@ -598,6 +598,9 @@ export default function Home({
               <Link href="/admin/team" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
                 Admin
               </Link>
+              <Link href="/tasks" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
+                Tasks
+              </Link>
               <Link href="/committees" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:hidden">
                 Teams
               </Link>
@@ -629,6 +632,7 @@ export default function Home({
                   </select>
                   <Button variant="subtle" size="md" onClick={() => searchInputRef.current?.focus()} aria-label="Search records">⌕ Search</Button>
                   <Link href="/admin/team" className="inline-flex h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">Team admin</Link>
+                  <Link href="/tasks" className="inline-flex h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">My tasks</Link>
                   <Link href="/settings" className="hidden h-9 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 xl:inline-flex">Settings</Link>
                 </div>
                 <ThemeToggle />

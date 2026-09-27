@@ -58,7 +58,8 @@ function assignedInclude() {
 
 export function normalizeRecord(module: ModuleKey, record: Record<string, unknown>) {
   // Never ship file bytes in list/detail payloads — served by the module file route.
-  const { fileData: _omit, ...rest } = record;
+  const rest = { ...record };
+  delete rest.fileData;
   if (module === "training") {
     return {
       ...rest,

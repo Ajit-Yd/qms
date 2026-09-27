@@ -175,13 +175,10 @@ export default function CommitteeDetailPage() {
     },
   ];
 
-  // Hierarchy-filtered: only individuals below viewer at all levels
-  const subordinateIds = getSubordinateIds(viewerId, profiles);
-  const assignableProfilesForAdd = profiles.filter((p) => subordinateIds.includes(p.id));
-  const assignableCommitteeMembers = (() => {
-    const subsSet = new Set(subordinateIds);
-    return memberRows.filter((m) => subsSet.has(m.profileId));
-  })();
+  // Hierarchy-filtered: yourself plus individuals below you at all levels
+  const allowedIds = new Set([viewerId, ...getSubordinateIds(viewerId, profiles)]);
+  const assignableProfilesForAdd = profiles.filter((p) => allowedIds.has(p.id));
+  const assignableCommitteeMembers = memberRows.filter((m) => allowedIds.has(m.profileId));
 
   const handleAddMember = async (values: { profileId: string; roleInCommittee: string }) => {
     const response = await fetch(`/api/committees/${committeeId}/members`, {
@@ -380,7 +377,7 @@ export default function CommitteeDetailPage() {
               onCancel={() => setShowAddMember(false)}
             />
             {assignableProfilesForAdd.length === 0 && (
-              <p className="mt-2 text-xs text-amber-600">No subordinates available to add. Only individuals below you across all levels are shown.</p>
+              <p className="mt-2 text-xs text-amber-600">Nobody available to add. You can add yourself and anyone below you across all levels.</p>
             )}
           </div>
         )}
@@ -413,7 +410,7 @@ export default function CommitteeDetailPage() {
               onCancel={() => setShowAssignTask(false)}
             />
             {assignableCommitteeMembers.length === 0 && (
-              <p className="mt-2 text-xs text-amber-600">No subordinate committee members available. Tasks can only be assigned to individuals below you across all levels.</p>
+              <p className="mt-2 text-xs text-amber-600">No assignable committee members. You can assign a task to yourself or to any member below you.</p>
             )}
           </div>
         )}

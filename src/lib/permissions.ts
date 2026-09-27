@@ -53,7 +53,8 @@ export function canAssignRecords(userId: string, profiles: Profile[]): boolean {
 }
 
 export function canManageCommittees(userId: string, profiles: Profile[]): boolean {
-  if (isMonitorOnly(userId, profiles)) return false;
+  // Primary Admin (reportsTo === null) controls everything, including committees.
+  if (isTopAuthority(userId, profiles)) return true;
   return getProfileById(userId, profiles)?.canManageCommittees ?? false;
 }
 
@@ -80,7 +81,6 @@ export function canAssignCommitteeTask(
   profiles: Profile[],
   committeeMemberships: Array<{ profileId: string; committeeId: string; roleInCommittee: string }> = []
 ): boolean {
-  if (isMonitorOnly(userId, profiles)) return false;
   if (canManageCommittees(userId, profiles)) return true;
   return isCommitteeHead(userId, committeeId, committeeMemberships);
 }

@@ -17,9 +17,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!profileId || !["head", "member"].includes(roleInCommittee)) {
     return NextResponse.json({ error: "Profile ID and valid role are required" }, { status: 400 });
   }
-  // Enforce hierarchy: can only add subordinates (all levels)
-  if (!getSubordinateIds(auth.userId, auth.profiles).includes(profileId)) {
-    return NextResponse.json({ error: "Can only add subordinates (all levels) to committee" }, { status: 403 });
+  // Enforce hierarchy: can only add yourself or subordinates (all levels)
+  if (profileId !== auth.userId && !getSubordinateIds(auth.userId, auth.profiles).includes(profileId)) {
+    return NextResponse.json({ error: "Can only add yourself or subordinates (all levels) to committee" }, { status: 403 });
   }
   // Check existing membership + profile active
   const existing = await prisma.committeeMembership.findUnique({ where: { committeeId_profileId: { committeeId, profileId } } });

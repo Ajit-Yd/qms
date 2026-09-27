@@ -24,8 +24,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!memberships.some((membership) => membership.profileId === assignedTo)) {
     return NextResponse.json({ error: "Assignee must be a member of this committee" }, { status: 400 });
   }
-  if (!getSubordinateIds(auth.userId, auth.profiles).includes(assignedTo)) {
-    return NextResponse.json({ error: "Can only assign tasks to subordinates (all levels)" }, { status: 403 });
+  if (!getSubordinateIds(auth.userId, auth.profiles).includes(assignedTo) && assignedTo !== auth.userId) {
+    return NextResponse.json({ error: "Can only assign tasks to yourself or your subordinates (all levels)" }, { status: 403 });
   }
 
   const task = await prisma.committeeTask.create({

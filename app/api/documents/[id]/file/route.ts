@@ -32,8 +32,7 @@ export async function GET(request: Request, { params }: Ctx) {
   }
 
   if (new URL(request.url).searchParams.get("meta") === "1") {
-    const { fileData: _omit, ...meta } = doc;
-    return NextResponse.json(meta);
+    return NextResponse.json({ fileName: doc.fileName, fileType: doc.fileType, fileSize: doc.fileSize });
   }
 
   const bytes = new Uint8Array(Buffer.from(doc.fileData, "base64"));

@@ -169,11 +169,19 @@ model CommitteeTask {
   assignedByProfile Profile @relation("CommitteeTaskAssignedBy", fields: [assignedBy], references: [id], onDelete: Restrict)
   status      String   @default("assigned") // "assigned", "in_progress", "submitted", "approved"
   dueDate     DateTime?
+  responseNote String?
+  linkUrl     String?
+  fileName    String?
+  fileType    String?
+  fileSize    Int?
+  fileData    String?  @db.Text // base64; see src/lib/files.ts for limits
   createdAt   DateTime @default(now())
+  respondedAt DateTime?
 
   @@index([committeeId])
   @@index([assignedTo])
   @@index([assignedBy])
+  @@index([status])
 }
 
 model RecordHistory {
