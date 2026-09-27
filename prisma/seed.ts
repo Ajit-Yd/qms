@@ -52,9 +52,15 @@ async function main() {
   await prisma.capa.deleteMany();
   await prisma.document.deleteMany();
   await prisma.profile.deleteMany();
+  await prisma.organization.deleteMany();
 
   const rootProfiles = profiles.filter((profile) => !profile.reportsTo);
   const childProfiles = profiles.filter((profile) => profile.reportsTo);
+
+  console.log("🏢 Seeding organization...");
+  const organization = await prisma.organization.create({
+    data: { id: "org_main", name: "Main Organization" },
+  });
 
   console.log("📦 Seeding profiles...");
   for (const profile of rootProfiles) {
@@ -65,6 +71,8 @@ async function main() {
         email: emailFor(profile),
         roleTitle: profile.roleTitle,
         reportsTo: profile.reportsTo,
+        organizationId: organization.id,
+        systemRole: "primary_admin",
         canManageCommittees: profile.canManageCommittees ?? false,
         passwordHash: hashPassword(profilePasswords[profile.id] ?? DEMO_PASSWORD),
       },
@@ -79,6 +87,8 @@ async function main() {
         email: emailFor(profile),
         roleTitle: profile.roleTitle,
         reportsTo: profile.reportsTo,
+        organizationId: organization.id,
+        systemRole: profile.canManageCommittees ? "org_admin" : "member",
         canManageCommittees: profile.canManageCommittees ?? false,
         passwordHash: hashPassword(profilePasswords[profile.id] ?? DEMO_PASSWORD),
       },
@@ -173,6 +183,7 @@ async function main() {
         name: committee.name,
         description: committee.description,
         createdBy: committee.createdBy,
+        organizationId: organization.id,
         createdAt: committee.createdAt ? new Date(committee.createdAt) : undefined,
       },
     });

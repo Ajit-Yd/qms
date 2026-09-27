@@ -10,6 +10,7 @@
     "lint": "eslint",
     "check:files": "tsx src/lib/files.check.ts",
     "check:tasks": "tsx src/lib/tasks-api.check.ts",
+    "check:tenancy": "tsx src/lib/tenancy.check.ts",
     "prisma:generate": "prisma generate --config prisma.config.ts",
     "prisma:validate": "prisma validate --config prisma.config.ts",
     "prisma:seed": "prisma db seed --config prisma.config.ts"

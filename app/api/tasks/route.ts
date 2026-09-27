@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
 import { normalizeTaskStatus, visibleCommitteeIds } from "@/src/lib/tasks-api";
+import { orgScope } from "@/src/lib/tenant";
 
 const taskSelect = {
   id: true,
@@ -36,23 +37,24 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: `Invalid status: ${status}` }, { status: 400 });
   }
 
+  const orgCommittees = await prisma.committee.findMany({ where: orgScope(auth), select: { id: true } });
   const memberships = await prisma.committeeMembership.findMany({ where: { profileId: auth.userId } });
-  const allowed = visibleCommitteeIds(auth.userId, memberships, auth.profiles);
+  const allowed = visibleCommitteeIds(
+    auth.userId,
+    memberships,
+    auth.profiles,
+    orgCommittees.map((c) => c.id)
+  );
 
   const committees = await prisma.committee.findMany({
-    where: allowed[0] === "*" ? {} : { id: { in: allowed } },
+    where: { id: { in: allowed } },
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
   if (!committees.length) return NextResponse.json({ tasks: [], committees });
 
-  // "*" means committee manager: unrestricted. Otherwise intersect the request with visible committees.
-  const committeeFilter =
-    allowed[0] === "*"
-      ? committeeId
-        ? { committeeId }
-        : {}
-      : { committeeId: { in: committeeId ? allowed.filter((id) => id === committeeId) : allowed } };
+  // A requested committee outside the viewer's organization simply matches nothing.
+  const committeeFilter = { committeeId: committeeId && allowed.includes(committeeId) ? committeeId : { in: allowed } };
 
   const tasks = await prisma.committeeTask.findMany({
     where: {

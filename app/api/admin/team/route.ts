@@ -27,6 +27,7 @@ export async function POST(request: Request) {
       email: body.email || `${String(body.name).toLowerCase().replace(/\s+/g, ".")}@qms.local`,
       roleTitle: body.roleTitle,
       reportsTo: body.reportsTo,
+      organizationId: auth.organizationId,
       passwordHash: hashPassword(temporaryPassword),
     },
   });
@@ -44,6 +45,10 @@ export async function PATCH(request: Request) {
   }
   const body = await request.json();
   if (body.profileId) {
+    // Never let an org admin edit a profile that lives in another organization.
+    if (!getProfileById(String(body.profileId), auth.profiles)) {
+      return NextResponse.json({ error: "Profile not found in your organization." }, { status: 404 });
+    }
     const user = await prisma.profile.update({
       where: { id: body.profileId },
       data: {
@@ -58,9 +63,18 @@ export async function PATCH(request: Request) {
     if (isMonitorOnly(auth.userId, auth.profiles)) {
       return NextResponse.json({ error: "Forbidden: monitor-only role cannot reassign records." }, { status: 403 });
     }
+    // Both ends of the move must be people in the caller's organization.
+    if (!getProfileById(String(body.assignedTo), auth.profiles)) {
+      return NextResponse.json({ error: "Assignee is not in your organization." }, { status: 403 });
+    }
     const moduleKey = body.module as ModuleKey;
-    const before = await prismaForModule(moduleKey).findUnique({ where: { id: body.recordId } });
-    const record = await prismaForModule(moduleKey).update({
+    const model = prismaForModule(moduleKey);
+    const owned = auth.profiles.map((p) => p.id);
+    const before = await model.findFirst({
+      where: { id: body.recordId, assignedTo: { in: owned } },
+    });
+    if (!before) return NextResponse.json({ error: "Record not found in your organization." }, { status: 404 });
+    const record = await model.update({
       where: { id: body.recordId },
       data: { assignedTo: body.assignedTo } as never,
     });
@@ -103,13 +117,15 @@ export async function GET() {
     // Non-top users get scoped view via /api/profiles instead; block bulk dump
     return NextResponse.json({ error: "Forbidden: team overview requires top-authority" }, { status: 403 });
   }
-  const profiles = await prisma.profile.findMany({ orderBy: { name: "asc" } });
+  const profiles = auth.profiles;
+  // Records carry no organizationId; they belong to whoever they are assigned to.
+  const owned = { where: { deletedAt: null, assignedTo: { in: profiles.map((p) => p.id) } } };
   const [documents, capas, nonconformances, audits, training] = await Promise.all([
-    prisma.document.findMany({ where: { deletedAt: null } }),
-    prisma.capa.findMany({ where: { deletedAt: null } }),
-    prisma.nonconformance.findMany({ where: { deletedAt: null } }),
-    prisma.audit.findMany({ where: { deletedAt: null } }),
-    prisma.training.findMany({ where: { deletedAt: null } }),
+    prisma.document.findMany(owned),
+    prisma.capa.findMany(owned),
+    prisma.nonconformance.findMany(owned),
+    prisma.audit.findMany(owned),
+    prisma.training.findMany(owned),
   ]);
   return NextResponse.json({
     profiles: profiles.map(toPublicProfile),

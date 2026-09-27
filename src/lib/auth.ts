@@ -11,28 +11,40 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
+        organization: { label: "Organization", type: "text" },
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        const organization = String(credentials?.organization ?? "").trim();
         const email = String(credentials?.email ?? "").trim().toLowerCase();
         const password = String(credentials?.password ?? "");
-        if (!email || !password) return null;
+        if (!organization || !email || !password) return null;
 
-        const profile = await prisma.profile.findFirst({
-          where: { email: { equals: email, mode: "insensitive" }, active: true },
+        const org = await prisma.organization.findFirst({
+          where: { name: { equals: organization, mode: "insensitive" }, active: true },
         });
+
+        const profile = org
+          ? await prisma.profile.findFirst({
+              where: {
+                organizationId: org.id,
+                email: { equals: email, mode: "insensitive" },
+                active: true,
+              },
+            })
+          : null;
 
         const isValid = profile ? await verifyPassword(profile.id, password) : false;
         if (!isValid || !profile) {
           // Only count failures toward rate limit (10 fails / 15min)
-          const { allowed } = rateLimit(`login:email:${email}`, 10, 15 * 60 * 1000);
+          const { allowed } = rateLimit(`login:email:${org?.id ?? "none"}:${email}`, 10, 15 * 60 * 1000);
           if (!allowed) console.warn(`Rate limited login for ${email}`);
           return null;
         }
         // Success — clear any prior failure count for this email
         const { clearRateLimit } = await import("@/src/lib/rate-limit");
-        clearRateLimit(`login:email:${email}`);
+        clearRateLimit(`login:email:${org?.id ?? "none"}:${email}`);
         return { id: profile.id, name: profile.name, email: profile.email ?? email };
       },
     }),

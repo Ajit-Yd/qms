@@ -24,6 +24,7 @@ import {
   getDashboardRole,
   getSubordinateIds,
   getViewerScope,
+  isPrimaryAdmin,
   type Profile,
 } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
@@ -71,8 +72,8 @@ type ModuleOption = { key: ModuleKey; label: string; total: number };
 
 const moduleList: ModuleOption[] = [
   { key: "documents", label: "Documents", total: 12 },
-  { key: "capa", label: "CAPA", total: 8 },
-  { key: "nonconformances", label: "Non-conformances", total: 6 },
+  { key: "capa", label: "Actions", total: 8 },
+  { key: "nonconformances", label: "Issues", total: 6 },
   { key: "audits", label: "Audits", total: 4 },
   { key: "training", label: "Training", total: 14 },
 ];
@@ -604,9 +605,14 @@ export default function Home({
               <Link href="/meetings" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
                 Meetings
               </Link>
-              <Link href="/committees" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:hidden">
+              <Link href="/committees" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
                 Teams
               </Link>
+              {isPrimaryAdmin(viewerId, profiles) && (
+                <Link href="/admin/organizations" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
+                  Orgs
+                </Link>
+              )}
             </div>
           </div>
         </aside>

@@ -13,9 +13,10 @@ export default function ForgotPasswordPage() {
     setError("");
     setLoading(true);
     const form = new FormData(e.currentTarget);
+    const organization = String(form.get("organization") ?? "");
     const email = String(form.get("email") ?? "");
     try {
-      const res = await fetch("/api/auth/forgot-password", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email }) });
+      const res = await fetch("/api/auth/forgot-password", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ organization, email }) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) setError(data.error ?? "Failed to send instructions");
       else setSent(true);
@@ -30,8 +31,9 @@ export default function ForgotPasswordPage() {
       <div className="mx-auto flex w-full max-w-[92%] justify-end sm:max-w-md"><ThemeToggle /></div>
       <form onSubmit={handleSubmit} className="animate-in mx-auto mt-4 max-w-[92%] sm:max-w-md rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800 sm:mt-8 sm:p-6 shadow-[0_8px_32px_rgba(16,24,40,0.08)]">
         <h1 className="text-2xl font-bold text-slate-900">Reset password</h1>
-        <p className="mt-2 text-sm text-slate-600">Enter your email and we will send reset instructions.</p>
-        <input required type="email" name="email" aria-label="Email" className="mt-5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus:bg-white" />
+        <p className="mt-2 text-sm text-slate-600">Enter your organization and email and we will send reset instructions.</p>
+        <input required name="organization" aria-label="Organization" autoComplete="organization" className="mt-5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus:bg-white" />
+        <input required type="email" name="email" aria-label="Email" autoComplete="email" className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus:bg-white" />
         <Button type="submit" variant="primary" size="lg" fullWidth className="mt-4" loading={loading} disabled={loading || sent}>Send instructions</Button>
         {sent && <p className="mt-3 text-sm text-emerald-700">Instructions sent if the account exists. Check your email (or server logs in dev).</p>}
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}

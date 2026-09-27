@@ -1,6 +1,7 @@
 import { prisma } from "@/src/lib/prisma";
 import type { Profile } from "@/src/lib/permissions";
 
-export async function loadProfiles(): Promise<Profile[]> {
-  return prisma.profile.findMany();
+/** Pass null to load every organization (Primary Admin only). */
+export async function loadProfiles(organizationId?: string | null): Promise<Profile[]> {
+  return prisma.profile.findMany(organizationId ? { where: { organizationId } } : undefined);
 }

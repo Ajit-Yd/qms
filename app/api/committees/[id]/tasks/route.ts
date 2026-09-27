@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
 import { canAssignCommitteeTask, getProfileById, getSubordinateIds } from "@/src/lib/permissions";
+import { orgScope } from "@/src/lib/tenant";
 import { sendNotification } from "@/src/lib/email";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -19,7 +20,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!title) return NextResponse.json({ error: "Task title is required" }, { status: 400 });
   if (!assignedTo) return NextResponse.json({ error: "Assignee is required" }, { status: 400 });
 
-  const committee = await prisma.committee.findUnique({ where: { id: committeeId } });
+  const committee = await prisma.committee.findFirst({ where: { id: committeeId, ...orgScope(auth) } });
   if (!committee) return NextResponse.json({ error: "Committee not found" }, { status: 404 });
   if (!memberships.some((membership) => membership.profileId === assignedTo)) {
     return NextResponse.json({ error: "Assignee must be a member of this committee" }, { status: 400 });

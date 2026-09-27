@@ -3,6 +3,7 @@ import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
 import { verifyCsrf } from "@/src/lib/csrf";
 import { canRespondToTask, canReviewTask } from "@/src/lib/tasks-api";
+import { orgScope } from "@/src/lib/tenant";
 import { isViewableInline, MAX_FILE_BYTES, resolveMime } from "@/src/lib/files";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -23,8 +24,8 @@ export async function GET(request: Request, { params }: Ctx) {
   if ("response" in auth) return auth.response;
   const { id } = await params;
 
-  const task = await prisma.committeeTask.findUnique({
-    where: { id },
+  const task = await prisma.committeeTask.findFirst({
+    where: { id, committee: orgScope(auth) },
     select: { ...taskResponseSelect, committeeId: true, assignedTo: true, fileData: true },
   });
   if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -65,10 +66,10 @@ export async function POST(request: Request, { params }: Ctx) {
   if ("response" in auth) return auth.response;
   const { id } = await params;
 
-  const task = await prisma.committeeTask.findUnique({ where: { id }, select: { committeeId: true, assignedTo: true } });
+  const task = await prisma.committeeTask.findFirst({ where: { id, committee: orgScope(auth) }, select: { committeeId: true, assignedTo: true } });
   if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const memberships = await prisma.committeeMembership.findMany();
+  const memberships = await prisma.committeeMembership.findMany({ where: { committeeId: task.committeeId } });
   if (!canRespondToTask(auth.userId, task, memberships, auth.profiles)) {
     return NextResponse.json({ error: "Only the assignee, committee head, or a manager can respond" }, { status: 403 });
   }
@@ -123,10 +124,10 @@ export async function DELETE(request: Request, { params }: Ctx) {
   if ("response" in auth) return auth.response;
   const { id } = await params;
 
-  const task = await prisma.committeeTask.findUnique({ where: { id }, select: { committeeId: true, assignedTo: true } });
+  const task = await prisma.committeeTask.findFirst({ where: { id, committee: orgScope(auth) }, select: { committeeId: true, assignedTo: true } });
   if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const memberships = await prisma.committeeMembership.findMany();
+  const memberships = await prisma.committeeMembership.findMany({ where: { committeeId: task.committeeId } });
   if (!canRespondToTask(auth.userId, task, memberships, auth.profiles)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

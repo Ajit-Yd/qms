@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
 import { canManageCommittees, getSubordinateIds } from "@/src/lib/permissions";
+import { orgScope } from "@/src/lib/tenant";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireSessionUser();
@@ -10,7 +11,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "You do not have permission to manage committee members" }, { status: 403 });
   }
   const { id: committeeId } = await params;
-  const committee = await prisma.committee.findUnique({ where: { id: committeeId } });
+  const committee = await prisma.committee.findFirst({ where: { id: committeeId, ...orgScope(auth) } });
   if (!committee) return NextResponse.json({ error: "Committee not found" }, { status: 404 });
   const body = await request.json();
   const { profileId, roleInCommittee } = body;

@@ -111,7 +111,7 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // No setState before the first await — keeps the effect free of cascading renders.
+  // No setState before the first await.
   const load = useCallback(async () => {
     if (!viewerId) return;
     const params = new URLSearchParams();

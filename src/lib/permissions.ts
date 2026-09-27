@@ -6,6 +6,8 @@ export type Profile = {
   reportsTo: string | null;
   active?: boolean | null;
   canManageCommittees?: boolean | null;
+  organizationId?: string | null;
+  systemRole?: string | null;
   createdAt?: string | Date;
 };
 
@@ -35,9 +37,29 @@ export function getDashboardRole(userId: string, profiles: Profile[]): Dashboard
   return "process-owner";
 }
 
+// The one global Primary Admin. Created by the backfill; owns every organization.
+export function isPrimaryAdmin(userId: string, profiles: Profile[]): boolean {
+  return getProfileById(userId, profiles)?.systemRole === "primary_admin";
+}
+
+// Runs one organization: appoints its Secondary Admins, owns its committees and hierarchy.
+export function isOrgAdmin(userId: string, profiles: Profile[]): boolean {
+  const profile = getProfileById(userId, profiles);
+  if (!profile) return false;
+  return (
+    profile.systemRole === "primary_admin" ||
+    profile.systemRole === "org_admin" ||
+    profile.canManageCommittees === true
+  );
+}
+
 export function isTopAuthority(userId: string, profiles: Profile[]): boolean {
   const profile = getProfileById(userId, profiles);
-  return profile?.reportsTo === null;
+  if (!profile) return false;
+  // A Secondary Admin who happens to sit at the root of their own org's tree
+  // must not inherit the Primary Admin's platform-wide powers.
+  if (profile.systemRole === "org_admin") return false;
+  return profile.systemRole === "primary_admin" || profile.reportsTo === null;
 }
 
 export function isMonitorOnly(userId: string, profiles: Profile[]): boolean {
@@ -53,9 +75,8 @@ export function canAssignRecords(userId: string, profiles: Profile[]): boolean {
 }
 
 export function canManageCommittees(userId: string, profiles: Profile[]): boolean {
-  // Primary Admin (reportsTo === null) controls everything, including committees.
-  if (isTopAuthority(userId, profiles)) return true;
-  return getProfileById(userId, profiles)?.canManageCommittees ?? false;
+  // Primary Admin across every organization; Secondary Admin within their own.
+  return isOrgAdmin(userId, profiles);
 }
 
 export function canGrantCommitteePermission(userId: string, profiles: Profile[]): boolean {

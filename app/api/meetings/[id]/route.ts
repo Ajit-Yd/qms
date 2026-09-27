@@ -3,6 +3,7 @@ import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
 import { verifyCsrf } from "@/src/lib/csrf";
 import { canManageCommittees, isCommitteeHead } from "@/src/lib/permissions";
+import { orgScope } from "@/src/lib/tenant";
 
 const meetingSelect = {
   id: true,
@@ -25,6 +26,16 @@ const meetingSelect = {
 async function loadMeeting(id: string) {
   const auth = await requireSessionUser();
   if ("response" in auth) return { response: auth.response } as const;
+
+  // Pin the meeting to the caller's organization before any permission check,
+  // otherwise `manages` would let a Secondary Admin read any meeting id.
+  const inScope = await prisma.meeting.findFirst({
+    where: { id, committee: orgScope(auth) },
+    select: { id: true },
+  });
+  if (!inScope) {
+    return { response: NextResponse.json({ error: "Meeting not found" }, { status: 404 }) } as const;
+  }
 
   const meeting = await prisma.meeting.findUnique({ where: { id }, select: meetingSelect });
   if (!meeting) {

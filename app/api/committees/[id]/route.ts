@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
 import { canManageCommittees } from "@/src/lib/permissions";
+import { orgScope } from "@/src/lib/tenant";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   const { id } = await params;
-  const committee = await prisma.committee.findUnique({
-    where: { id },
+  const committee = await prisma.committee.findFirst({
+    where: { id, ...orgScope(auth) },
     include: {
       memberships: { include: { profile: true } },
       tasks: true,
@@ -26,6 +27,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Forbidden: committee management required" }, { status: 403 });
   }
   const { id } = await params;
+  const existing = await prisma.committee.findFirst({ where: { id, ...orgScope(auth) }, select: { id: true } });
+  if (!existing) return NextResponse.json({ error: "Committee not found" }, { status: 404 });
   const body = await request.json();
   if (typeof body.name !== "string" && typeof body.description !== "string") {
     return NextResponse.json({ error: "Provide name or description" }, { status: 400 });
@@ -47,7 +50,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Forbidden: committee management required" }, { status: 403 });
   }
   const { id } = await params;
-  const committee = await prisma.committee.findUnique({ where: { id } });
+  const committee = await prisma.committee.findFirst({ where: { id, ...orgScope(auth) } });
   if (!committee) return NextResponse.json({ error: "Committee not found" }, { status: 404 });
   await prisma.committee.delete({ where: { id } });
   return NextResponse.json({ ok: true });

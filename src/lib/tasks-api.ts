@@ -9,10 +9,19 @@ export function normalizeTaskStatus(value: unknown): TaskStatus | null {
 
 export type Membership = { committeeId: string; profileId: string; roleInCommittee: string };
 
-/** Committees whose task list the viewer may read: their own, plus all when they manage committees. */
-export function visibleCommitteeIds(userId: string, memberships: Membership[], profiles: Profile[]): string[] {
+/**
+ * Committees whose task list the viewer may read: their own memberships, or — for
+ * committee managers — every committee in `orgCommitteeIds`. Managers must never
+ * get a wildcard here or a Secondary Admin would read other organizations' tasks.
+ */
+export function visibleCommitteeIds(
+  userId: string,
+  memberships: Membership[],
+  profiles: Profile[],
+  orgCommitteeIds: string[] = []
+): string[] {
   const mine = memberships.filter((m) => m.profileId === userId).map((m) => m.committeeId);
-  return canManageCommittees(userId, profiles) ? ["*", ...mine] : mine;
+  return canManageCommittees(userId, profiles) ? orgCommitteeIds : mine;
 }
 
 /** Assignee responds; committee head and committee managers may respond on their behalf. */

@@ -109,7 +109,7 @@ export function createDataForModule(module: ModuleKey, body: Record<string, unkn
     return { title, assignedTo, assignedBy, status, revision: String(body.revision || "1") };
   }
   if (module === "capa") {
-    const title = String(body.title || "Untitled CAPA").trim();
+    const title = String(body.title || "Untitled action").trim();
     if (!title) return { error: "Title is required" };
     const priority = String(body.priority || "Medium");
     if (!ALLOWED_PRIORITY.has(priority)) return { error: `Invalid priority: ${priority}` };
@@ -118,7 +118,7 @@ export function createDataForModule(module: ModuleKey, body: Record<string, unkn
     return { title, assignedTo, assignedBy, status, priority, dueDate };
   }
   if (module === "nonconformances") {
-    const title = String(body.title || "Untitled NCR").trim();
+    const title = String(body.title || "Untitled issue").trim();
     if (!title) return { error: "Title is required" };
     const source = String(body.source || "Internal");
     const severity = String(body.severity || "Medium");

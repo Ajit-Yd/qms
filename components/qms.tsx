@@ -15,9 +15,9 @@ export const moduleConfig: Record<
   { label: string; accent: string; icon: string }
 > = {
   documents: { label: "Documents", accent: "#4A5D7A", icon: "doc" },
-  capa: { label: "CAPA", accent: "#1D9E75", icon: "cap" },
+  capa: { label: "Actions", accent: "#1D9E75", icon: "cap" },
   nonconformances: {
-    label: "Non-conformances",
+    label: "Issues",
     accent: "#C1614F",
     icon: "nc",
   },

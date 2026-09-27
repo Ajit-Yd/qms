@@ -6,15 +6,28 @@ datasource db {
   provider = "postgresql"
 }
 
+model Organization {
+  id         String      @id @default(cuid())
+  name       String      @unique
+  active     Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  profiles   Profile[]
+  committees Committee[]
+}
+
 model Profile {
   id          String        @id @default(cuid())
   name        String
-  email       String?       @unique
+  email       String?
   passwordHash String?
   roleTitle   String
   reportsTo   String?
   active      Boolean       @default(true)
   canManageCommittees Boolean @default(false)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  // "primary_admin" (one global owner), "org_admin" (this org's admin), "member"
+  systemRole String        @default("member")
   passwordResetTokens PasswordResetToken[]
   reportsToProfile Profile? @relation("ProfileReportsTo", fields: [reportsTo], references: [id], onDelete: SetNull)
   subordinates Profile[]    @relation("ProfileReportsTo")
@@ -39,6 +52,8 @@ model Profile {
   meetingAttendances     MeetingAttendee[]
 
   @@index([reportsTo])
+  @@index([organizationId])
+  @@unique([organizationId, email])
 }
 
 model Document {
@@ -135,6 +150,8 @@ model Committee {
   id          String   @id @default(cuid())
   name        String
   description String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdBy   String
   createdByProfile Profile @relation("CommitteeCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
   createdAt   DateTime @default(now())
@@ -144,6 +161,7 @@ model Committee {
   meetings    Meeting[]
 
   @@index([createdBy])
+  @@index([organizationId])
 }
 
 model CommitteeMembership {

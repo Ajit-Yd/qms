@@ -11,17 +11,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Too many reset attempts. Try again later." }, { status: 429, headers: rateLimitResponse(ipLimit.remaining, ipLimit.resetMs) });
   }
   const body = await request.json().catch(() => ({}));
+  const organization = String(body.organization ?? "").trim();
   const email = String(body.email ?? "").trim().toLowerCase();
+  if (!organization) return NextResponse.json({ error: "Organization is required" }, { status: 400 });
   if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
-  const emailLimit = rateLimit(`forgot:email:${email}`, 3, 60 * 60 * 1000);
+  const emailLimit = rateLimit(`forgot:email:${organization.toLowerCase()}:${email}`, 3, 60 * 60 * 1000);
   if (!emailLimit.allowed) {
     return NextResponse.json({ error: "Too many reset attempts for this email. Try again later." }, { status: 429, headers: rateLimitResponse(emailLimit.remaining, emailLimit.resetMs) });
   }
 
   // Always return success to prevent enumeration; do work only if user exists & active
-  const profile = await prisma.profile.findFirst({
-    where: { email: { equals: email, mode: "insensitive" }, active: true },
+  const org = await prisma.organization.findFirst({
+    where: { name: { equals: organization, mode: "insensitive" }, active: true },
   });
+  const profile = org
+    ? await prisma.profile.findFirst({
+        where: { organizationId: org.id, email: { equals: email, mode: "insensitive" }, active: true },
+      })
+    : null;
   if (!profile) {
     return NextResponse.json({ success: true, message: "If the account exists, instructions have been sent." });
   }

@@ -4,6 +4,7 @@ import { requireSessionUser } from "@/src/lib/api-auth";
 import { verifyCsrf } from "@/src/lib/csrf";
 import { canManageCommittees, getSubordinateIds, isCommitteeHead } from "@/src/lib/permissions";
 import { visibleCommitteeIds } from "@/src/lib/tasks-api";
+import { orgScope } from "@/src/lib/tenant";
 
 const meetingSelect = {
   id: true,
@@ -39,23 +40,25 @@ export async function GET(request: Request) {
   if ("response" in auth) return auth.response;
 
   const committeeId = new URL(request.url).searchParams.get("committeeId");
+  const orgCommittees = await prisma.committee.findMany({ where: orgScope(auth), select: { id: true } });
   const memberships = await prisma.committeeMembership.findMany({ where: { profileId: auth.userId } });
-  const allowed = visibleCommitteeIds(auth.userId, memberships, auth.profiles);
+  const allowed = visibleCommitteeIds(
+    auth.userId,
+    memberships,
+    auth.profiles,
+    orgCommittees.map((c) => c.id)
+  );
 
   const committees = await prisma.committee.findMany({
-    where: allowed[0] === "*" ? {} : { id: { in: allowed } },
+    where: { id: { in: allowed } },
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
   if (!committees.length) return NextResponse.json({ meetings: [], committees });
 
   const meetings = await prisma.meeting.findMany({
-    where:
-      allowed[0] === "*"
-        ? committeeId
-          ? { committeeId }
-          : {}
-        : { committeeId: { in: committeeId ? allowed.filter((id) => id === committeeId) : allowed } },
+    // A requested committee outside the viewer's organization matches nothing.
+    where: { committeeId: committeeId && allowed.includes(committeeId) ? committeeId : { in: allowed } },
     select: meetingSelect,
     orderBy: { scheduledAt: "desc" },
   });
@@ -83,6 +86,9 @@ export async function POST(request: Request) {
   if (String(body.linkUrl ?? "").trim() && !linkUrl) {
     return NextResponse.json({ error: "Meeting link must be a full http(s) URL" }, { status: 400 });
   }
+
+  const target = await prisma.committee.findFirst({ where: { id: committeeId, ...orgScope(auth) } });
+  if (!target) return NextResponse.json({ error: "Committee not found" }, { status: 404 });
 
   const memberships = await prisma.committeeMembership.findMany({ where: { committeeId } });
   const canOrganize =
