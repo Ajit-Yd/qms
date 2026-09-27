@@ -37,8 +37,23 @@ export async function POST(request: Request) {
   });
 
   const resetUrl = `${process.env.NEXTAUTH_URL ?? "http://localhost:3000"}/reset-password?token=${rawToken}&email=${encodeURIComponent(email)}`;
-  console.log(`[password-reset] ${email}: ${resetUrl} (email disabled, use debugUrl)`);
-
-  // Always return debugUrl so reset works without email (since email removed)
-  return NextResponse.json({ success: true, message: "Use the link to reset (email disabled).", debugToken: rawToken, debugUrl: resetUrl });
+  // Use single helper if email enabled, otherwise log only in dev (no PII in prod logs)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const { sendEmail } = await import("@/src/lib/email");
+      await sendEmail(
+        email,
+        "Reset your QMS password",
+        `<p>Hi ${profile.name},</p><p>You requested a password reset. <a href="${resetUrl}">Click here to reset</a> (expires in 1 hour).</p><p>If you did not request this, ignore this email.</p>`
+      );
+    } catch (e) {
+      console.warn("Password reset email failed (non-blocking):", e);
+    }
+  }
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`[password-reset] ${email}: ${resetUrl}`);
+    return NextResponse.json({ success: true, message: "Instructions sent if the account exists.", debugToken: rawToken, debugUrl: resetUrl });
+  }
+  console.log(`[password-reset] token created for ${profile.id}`);
+  return NextResponse.json({ success: true, message: "If the account exists, instructions have been sent." });
 }

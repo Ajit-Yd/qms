@@ -57,13 +57,15 @@ function assignedInclude() {
 }
 
 export function normalizeRecord(module: ModuleKey, record: Record<string, unknown>) {
+  // Never ship file bytes in list/detail payloads — served by the module file route.
+  const { fileData: _omit, ...rest } = record;
   if (module === "training") {
     return {
-      ...record,
-      title: record.title ?? record.course ?? "Training",
+      ...rest,
+      title: rest.title ?? rest.course ?? "Training",
     };
   }
-  return record;
+  return rest;
 }
 
 export async function listModuleRecords(module: ModuleKey, userId: string, profiles: Profile[]) {

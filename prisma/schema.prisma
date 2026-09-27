@@ -50,6 +50,10 @@ model Document {
   revision  String
   updated   DateTime @default(now())
   deletedAt DateTime?
+  fileName  String?
+  fileType  String?
+  fileSize  Int?
+  fileData  String?  @db.Text // base64 for Vercel ephemeral FS
 
   @@index([assignedTo])
   @@index([assignedBy])

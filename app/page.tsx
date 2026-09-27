@@ -15,6 +15,7 @@ import {
 } from "@/components/qms";
 import { Dashboard } from "@/components/dashboard";
 import { ApprovalPanel } from "@/components/approval-panel";
+import { FilePanel } from "@/components/file-panel";
 import {
   canApproveOrRevise,
   canCreateRecords,
@@ -285,6 +286,16 @@ export default function Home({
     const currentList = records[activeModule] ?? [];
     return currentList.find((record) => record.id === selectedRecordId) ?? currentList[0] ?? null;
   }, [activeModule, records, selectedRecordId]);
+
+  const refetchRecord = async (id: string) => {
+    const response = await fetch(apiPath("documents", id));
+    if (!response.ok) return;
+    const data = await response.json();
+    setRecords((prev) => ({
+      ...prev,
+      documents: (prev.documents ?? []).map((item) => (item.id === id ? { ...item, ...data.record } : item)),
+    }));
+  };
 
   const visibleRecords = useMemo(() => {
     const list = records[activeModule] ?? [];
@@ -885,6 +896,22 @@ export default function Home({
                         Delete
                       </Button>
                     </div>
+
+                    {activeModule === "documents" && (
+                      <FilePanel
+                        endpoint={`/api/documents/${currentRecord.id}/file`}
+                        file={{
+                          fileName: (currentRecord.fileName as string | null) ?? null,
+                          fileType: (currentRecord.fileType as string | null) ?? null,
+                          fileSize: (currentRecord.fileSize as number | null) ?? null,
+                        }}
+                        canWrite={
+                          canSubmitOrUpdate(viewerId, String(currentRecord.assignedTo)) ||
+                          canApproveOrRevise(viewerId, String(currentRecord.assignedTo), profiles)
+                        }
+                        onChange={() => void refetchRecord(currentRecord.id)}
+                      />
+                    )}
 
                     <div className="mt-5 rounded-xl border border-slate-200 bg-white p-3">
                       <div className="mb-2 text-sm font-semibold text-slate-700">History</div>
