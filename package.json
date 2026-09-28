@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "check:files": "tsx src/lib/files.check.ts",
+    "check:seeded-files": "tsx lib/qms-files.check.ts",
     "check:tasks": "tsx src/lib/tasks-api.check.ts",
     "check:tenancy": "tsx src/lib/tenancy.check.ts",
     "prisma:generate": "prisma generate --config prisma.config.ts",

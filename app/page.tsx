@@ -68,14 +68,14 @@ type NotificationItem = {
   createdAt: string;
 };
 
-type ModuleOption = { key: ModuleKey; label: string; total: number };
+type ModuleOption = { key: ModuleKey; label: string };
 
 const moduleList: ModuleOption[] = [
-  { key: "documents", label: "Documents", total: 12 },
-  { key: "capa", label: "Actions", total: 8 },
-  { key: "nonconformances", label: "Issues", total: 6 },
-  { key: "audits", label: "Audits", total: 4 },
-  { key: "training", label: "Training", total: 14 },
+  { key: "documents", label: "Documents" },
+  { key: "capa", label: "Actions" },
+  { key: "nonconformances", label: "Issues" },
+  { key: "audits", label: "Audits" },
+  { key: "training", label: "Training" },
 ];
 
 const emptyRecords: Record<ModuleKey, ModuleRecord[]> = {

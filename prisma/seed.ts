@@ -6,7 +6,9 @@ import {
   committees,
   committeeMemberships,
   committeeTasks,
+  meetings,
 } from "../lib/qms-data";
+import { documentFiles } from "../lib/qms-seed-files";
 import { hashPassword } from "../src/lib/passwords";
 
 const prisma = new PrismaClient({
@@ -42,8 +44,9 @@ async function main() {
 
   await prisma.recordHistory.deleteMany();
   await prisma.comment.deleteMany();
-  await prisma.notification.deleteMany();
-  await prisma.committeeTask.deleteMany();
+await prisma.notification.deleteMany();
+await prisma.meeting.deleteMany();
+await prisma.committeeTask.deleteMany();
   await prisma.committeeMembership.deleteMany();
   await prisma.committee.deleteMany();
   await prisma.training.deleteMany();
@@ -98,6 +101,8 @@ async function main() {
   console.log("📦 Seeding documents...");
   const createdDocuments = [] as Array<{ id: string }>;
   for (const doc of recordsByModule.documents) {
+    // Attach a real, openable file so view/download work out of the box.
+    const file = documentFiles[doc.id];
     const created = await prisma.document.create({
       data: {
         id: doc.id,
@@ -106,6 +111,10 @@ async function main() {
         status: doc.status,
         revision: doc.revision,
         updated: new Date(doc.updated),
+        fileName: file?.fileName ?? null,
+        fileType: file?.fileType ?? null,
+        fileSize: file?.fileSize ?? null,
+        fileData: file?.fileData ?? null,
       },
     });
     createdDocuments.push(created);
@@ -215,6 +224,31 @@ async function main() {
         status: task.status,
         dueDate: task.dueDate ? new Date(task.dueDate) : null,
         createdAt: task.createdAt ? new Date(task.createdAt) : undefined,
+      },
+    });
+  }
+
+  console.log("📦 Seeding meetings...");
+  for (const meeting of meetings) {
+    // Attendees default to the committee roster, same as the create API.
+    const roster = committeeMemberships.filter((m) => m.committeeId === meeting.committeeId);
+    const isPast = new Date(meeting.scheduledAt) < new Date();
+    await prisma.meeting.create({
+      data: {
+        id: meeting.id,
+        committeeId: meeting.committeeId,
+        title: meeting.title,
+        scheduledAt: new Date(meeting.scheduledAt),
+        location: meeting.location,
+        organizedBy: meeting.organizedBy,
+        agenda: meeting.agenda,
+        notes: meeting.notes,
+        attendees: {
+          create: roster.map((membership) => ({
+            profileId: membership.profileId,
+            attended: isPast,
+          })),
+        },
       },
     });
   }
