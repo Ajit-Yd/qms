@@ -24,9 +24,9 @@ export async function GET(request: Request, { params }: Ctx) {
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   const { module: modulePath, id } = await params;
-  const module = resolveModule(modulePath);
-  if (!module) return NextResponse.json({ error: "Unknown module" }, { status: 404 });
-  const record = await loadRecord(module, id);
+  const moduleKey = resolveModule(modulePath);
+  if (!moduleKey) return NextResponse.json({ error: "Unknown module" }, { status: 404 });
+  const record = await loadRecord(moduleKey, id);
   if (!record || record.deletedAt) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (!canViewRecord(auth.userId, record.assignedTo, auth.profiles)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -62,9 +62,9 @@ export async function POST(request: Request, { params }: Ctx) {
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   const { module: modulePath, id } = await params;
-  const module = resolveModule(modulePath);
-  if (!module) return NextResponse.json({ error: "Unknown module" }, { status: 404 });
-  const record = await loadRecord(module, id);
+  const moduleKey = resolveModule(modulePath);
+  if (!moduleKey) return NextResponse.json({ error: "Unknown module" }, { status: 404 });
+  const record = await loadRecord(moduleKey, id);
   if (!record || record.deletedAt) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (!canWrite(auth.userId, record.assignedTo, auth.profiles)) {
     return NextResponse.json({ error: "Only the assignee or their manager can upload" }, { status: 403 });
@@ -84,8 +84,8 @@ export async function POST(request: Request, { params }: Ctx) {
 
   const fileData = Buffer.from(await upload.arrayBuffer()).toString("base64");
   const data: Record<string, unknown> = { fileName, fileType, fileSize: upload.size, fileData };
-  if (module === "documents") data.updated = new Date();
-  const updated = await prismaForModule(module).update({
+  if (moduleKey === "documents") data.updated = new Date();
+  const updated = await prismaForModule(moduleKey).update({
     where: { id },
     data: data as never,
     select: fileMetaSelect,
@@ -101,14 +101,14 @@ export async function DELETE(request: Request, { params }: Ctx) {
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   const { module: modulePath, id } = await params;
-  const module = resolveModule(modulePath);
-  if (!module) return NextResponse.json({ error: "Unknown module" }, { status: 404 });
-  const record = await loadRecord(module, id);
+  const moduleKey = resolveModule(modulePath);
+  if (!moduleKey) return NextResponse.json({ error: "Unknown module" }, { status: 404 });
+  const record = await loadRecord(moduleKey, id);
   if (!record || record.deletedAt) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (!canWrite(auth.userId, record.assignedTo, auth.profiles)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  await prismaForModule(module).update({
+  await prismaForModule(moduleKey).update({
     where: { id },
     data: { fileName: null, fileType: null, fileSize: null, fileData: null } as never,
   });
