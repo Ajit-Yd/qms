@@ -1,3 +1,4 @@
+import "./load-env";
 import { prisma } from "./prisma";
 import {
   canManageCommittees,

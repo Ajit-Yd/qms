@@ -1,4 +1,5 @@
-import { makeCsv, makePdf } from "./qms-files";
+import { makeCsv, makePdf, makePng } from "./qms-files";
+import { recordsByModule } from "./qms-data";
 
 /** A seeded file: written to the same columns the multipart upload API fills. */
 export type SeedFile = {
@@ -131,3 +132,53 @@ export const capaTrendCsv = csv("capa-effectiveness-q3.csv", [
   ["Q2 2026", "24", "19", "79.2"],
   ["Q3 2026", "21", "18", "85.7"],
 ]);
+
+// Every record in every module gets a real, openable file so the attach panel
+// has something to show across all five dashboards. Keyed by record id.
+function filesFor(
+  rows: readonly { id: string; title?: string; course?: string }[],
+  prefix: string,
+  section: string
+): Record<string, SeedFile> {
+  const out: Record<string, SeedFile> = {};
+  for (const row of rows) {
+    const title = row.title ?? row.course ?? "Record";
+    out[row.id] = pdf(`${prefix} - ${title}`, [
+      `${prefix}: ${title}`,
+      "",
+      `${section} evidence attached to this record.`,
+      "Generated: 2026-09-29",
+    ]);
+  }
+  return out;
+}
+
+const photo: SeedFile = {
+  fileName: "evidence-photo.png",
+  fileType: "image/png",
+  fileSize: makePng().byteLength,
+  fileData: makePng().toString("base64"),
+};
+
+export const capaFiles: Record<string, SeedFile> = {
+  ...filesFor(recordsByModule.capa, "Corrective Action Plan", "CAPA"),
+  "capa-2": capaTrendCsv,
+};
+
+export const ncFiles: Record<string, SeedFile> = {
+  ...filesFor(recordsByModule.nonconformances, "Nonconformance Report", "Nonconformance"),
+  "nc-2": photo,
+  "nc-5": photo,
+  "nc-10": photo,
+};
+
+export const auditFiles: Record<string, SeedFile> = {
+  ...filesFor(recordsByModule.audits, "Audit Report", "Audit"),
+  "audit-2": supplierAuditCsv,
+};
+
+export const trainingFiles: Record<string, SeedFile> = filesFor(
+  recordsByModule.training,
+  "Training Record",
+  "Training"
+);

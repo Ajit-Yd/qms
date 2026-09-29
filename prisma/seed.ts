@@ -8,7 +8,7 @@ import {
   committeeTasks,
   meetings,
 } from "../lib/qms-data";
-import { documentFiles } from "../lib/qms-seed-files";
+import { auditFiles, capaFiles, documentFiles, ncFiles, trainingFiles } from "../lib/qms-seed-files";
 import { hashPassword } from "../src/lib/passwords";
 
 const prisma = new PrismaClient({
@@ -123,6 +123,7 @@ await prisma.committeeTask.deleteMany();
   console.log("📦 Seeding CAPA records...");
   const createdCapa = [] as Array<{ id: string }>;
   for (const record of recordsByModule.capa) {
+    const file = capaFiles[record.id];
     const created = await prisma.capa.create({
       data: {
         id: record.id,
@@ -131,6 +132,10 @@ await prisma.committeeTask.deleteMany();
         priority: record.priority,
         status: record.status,
         dueDate: record.dueDate ? new Date(record.dueDate) : null,
+        fileName: file?.fileName ?? null,
+        fileType: file?.fileType ?? null,
+        fileSize: file?.fileSize ?? null,
+        fileData: file?.fileData ?? null,
       },
     });
     createdCapa.push(created);
@@ -139,6 +144,7 @@ await prisma.committeeTask.deleteMany();
   console.log("📦 Seeding nonconformances...");
   const createdNonconformances = [] as Array<{ id: string }>;
   for (const record of recordsByModule.nonconformances) {
+    const file = ncFiles[record.id];
     const created = await prisma.nonconformance.create({
       data: {
         id: record.id,
@@ -148,6 +154,10 @@ await prisma.committeeTask.deleteMany();
         severity: record.severity,
         status: record.status,
         date: new Date(record.date),
+        fileName: file?.fileName ?? null,
+        fileType: file?.fileType ?? null,
+        fileSize: file?.fileSize ?? null,
+        fileData: file?.fileData ?? null,
       },
     });
     createdNonconformances.push(created);
@@ -156,6 +166,7 @@ await prisma.committeeTask.deleteMany();
   console.log("📦 Seeding audits...");
   const createdAudits = [] as Array<{ id: string }>;
   for (const audit of recordsByModule.audits) {
+    const file = auditFiles[audit.id];
     const created = await prisma.audit.create({
       data: {
         id: audit.id,
@@ -163,6 +174,10 @@ await prisma.committeeTask.deleteMany();
         assignedTo: audit.assignedTo,
         status: audit.status,
         date: new Date(audit.date),
+        fileName: file?.fileName ?? null,
+        fileType: file?.fileType ?? null,
+        fileSize: file?.fileSize ?? null,
+        fileData: file?.fileData ?? null,
       },
     });
     createdAudits.push(created);
@@ -171,6 +186,7 @@ await prisma.committeeTask.deleteMany();
   console.log("📦 Seeding training records...");
   const createdTraining = [] as Array<{ id: string }>;
   for (const train of recordsByModule.training) {
+    const file = trainingFiles[train.id];
     const created = await prisma.training.create({
       data: {
         id: train.id,
@@ -179,6 +195,10 @@ await prisma.committeeTask.deleteMany();
         status: train.status,
         dueDate: train.dueDate ? new Date(train.dueDate) : null,
         assignedTo: train.assignedTo,
+        fileName: file?.fileName ?? null,
+        fileType: file?.fileType ?? null,
+        fileSize: file?.fileSize ?? null,
+        fileData: file?.fileData ?? null,
       },
     });
     createdTraining.push(created);

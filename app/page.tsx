@@ -880,6 +880,8 @@ export default function Home({
 
                     <div className="space-y-2 text-sm text-slate-700">
                       <div><span className="font-medium">Assigned:</span> {getProfileById(String(currentRecord.assignedTo), profiles)?.name}</div>
+                      {typeof currentRecord.source === "string" && currentRecord.source && <div><span className="font-medium">Source:</span> {String(currentRecord.source)}</div>}
+                      {typeof currentRecord.employee === "string" && currentRecord.employee && <div><span className="font-medium">Employee:</span> {getProfileById(String(currentRecord.employee), profiles)?.name ?? String(currentRecord.employee)}</div>}
                       {typeof currentRecord.priority === "string" && currentRecord.priority && <div><span className="font-medium">Priority:</span> {String(currentRecord.priority)}</div>}
                       {typeof currentRecord.severity === "string" && currentRecord.severity && <div><span className="font-medium">Severity:</span> {String(currentRecord.severity)}</div>}
                       {typeof currentRecord.revision === "string" && currentRecord.revision && <div><span className="font-medium">Revision:</span> {String(currentRecord.revision)}</div>}
@@ -910,9 +912,8 @@ export default function Home({
                       </Button>
                     </div>
 
-                    {activeModule === "documents" && (
-                      <FilePanel
-                        endpoint={`/api/documents/${currentRecord.id}/file`}
+                    <FilePanel
+                        endpoint={`/api/${modulePath(activeModule)}/${currentRecord.id}/file`}
                         file={{
                           fileName: (currentRecord.fileName as string | null) ?? null,
                           fileType: (currentRecord.fileType as string | null) ?? null,
@@ -924,7 +925,6 @@ export default function Home({
                         }
                         onChange={() => void refetchRecord(currentRecord.id)}
                       />
-                    )}
 
                     <div className="mt-5 rounded-xl border border-slate-200 bg-white p-3">
                       <div className="mb-2 text-sm font-semibold text-slate-700">History</div>

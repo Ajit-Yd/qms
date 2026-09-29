@@ -89,6 +89,10 @@ model Capa {
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
   deletedAt   DateTime?
+  fileName  String?
+  fileType  String?
+  fileSize  Int?
+  fileData  String?  @db.Text // base64; see src/lib/files.ts for limits
 
   @@index([assignedTo])
   @@index([assignedBy])
@@ -107,6 +111,10 @@ model Nonconformance {
   status      String
   date        DateTime  @default(now())
   deletedAt   DateTime?
+  fileName  String?
+  fileType  String?
+  fileSize  Int?
+  fileData  String?  @db.Text // base64; see src/lib/files.ts for limits
 
   @@index([assignedTo])
   @@index([assignedBy])
@@ -123,6 +131,10 @@ model Audit {
   status      String
   date        DateTime  @default(now())
   deletedAt   DateTime?
+  fileName  String?
+  fileType  String?
+  fileSize  Int?
+  fileData  String?  @db.Text // base64; see src/lib/files.ts for limits
 
   @@index([assignedTo])
   @@index([assignedBy])
@@ -140,6 +152,10 @@ model Training {
   assignedBy  String?
   assignedByProfile Profile? @relation("TrainingAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
   deletedAt   DateTime?
+  fileName  String?
+  fileType  String?
+  fileSize  Int?
+  fileData  String?  @db.Text // base64; see src/lib/files.ts for limits
 
   @@index([assignedTo])
   @@index([assignedBy])
