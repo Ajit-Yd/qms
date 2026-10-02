@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
+import { verifyCsrf } from "@/src/lib/csrf";
 
 export async function GET() {
   const auth = await requireSessionUser();
@@ -13,6 +14,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   const body = await request.json();

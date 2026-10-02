@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/src/lib/api-auth";
 import { deleteModuleRecord, getModuleRecord, updateModuleRecord } from "@/src/lib/qms-record-api";
+import { verifyCsrf } from "@/src/lib/csrf";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireSessionUser();
@@ -15,6 +16,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   const { id } = await params;
@@ -26,7 +30,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   const { id } = await params;

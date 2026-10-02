@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
 import { verifyCsrf } from "@/src/lib/csrf";
+import { enforceUserRateLimit, rateLimitResponse } from "@/src/lib/rate-limit";
 import { canRespondToTask, canReviewTask } from "@/src/lib/tasks-api";
 import { orgScope } from "@/src/lib/tenant";
 import { isViewableInline, MAX_FILE_BYTES, resolveMime } from "@/src/lib/files";
@@ -49,7 +50,7 @@ export async function GET(request: Request, { params }: Ctx) {
   return new NextResponse(bytes, {
     headers: {
       "content-type": resolveMime(task.fileName, task.fileType) ?? "application/octet-stream",
-      "content-disposition": `${isViewableInline(task.fileName) ? "inline" : "attachment"}; filename="${task.fileName.replace(/["\\]/g, "")}"`,
+      "content-disposition": `${isViewableInline(task.fileName) ? "inline" : "attachment"}; filename="${task.fileName.replace(/[\u0000-\u001f\u007f"\\]/g, "")}"`,
       "content-length": String(bytes.byteLength),
       "cache-control": "private, no-store",
       "x-content-type-options": "nosniff",
@@ -64,6 +65,13 @@ export async function POST(request: Request, { params }: Ctx) {
 
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
+  const budget = enforceUserRateLimit(auth.userId, "upload", 30, 60 * 1000);
+  if (!budget.allowed) {
+    return NextResponse.json(
+      { error: "Too many uploads. Please wait a moment." },
+      { status: 429, headers: rateLimitResponse(budget.remaining, budget.resetMs) }
+    );
+  }
   const { id } = await params;
 
   const task = await prisma.committeeTask.findFirst({ where: { id, committee: orgScope(auth) }, select: { committeeId: true, assignedTo: true } });

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
+import { verifyCsrf } from "@/src/lib/csrf";
 import { canManageCommittees } from "@/src/lib/permissions";
 import { orgScope } from "@/src/lib/tenant";
 
@@ -11,7 +12,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const committee = await prisma.committee.findFirst({
     where: { id, ...orgScope(auth) },
     include: {
-      memberships: { include: { profile: true } },
+      // Never `profile: true` — that ships passwordHash to every org member.
+      memberships: {
+        include: {
+          profile: {
+            select: { id: true, name: true, email: true, roleTitle: true, reportsTo: true, active: true },
+          },
+        },
+      },
       tasks: true,
       createdByProfile: { select: { id: true, name: true } },
     },
@@ -21,6 +29,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   if (!canManageCommittees(auth.userId, auth.profiles)) {
@@ -43,7 +54,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   return NextResponse.json({ ok: true, committee });
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   if (!canManageCommittees(auth.userId, auth.profiles)) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/src/lib/api-auth";
+import { verifyCsrf } from "@/src/lib/csrf";
 import { isTopAuthority } from "@/src/lib/permissions";
 import { executeSuccession, generateSuccessionSummary, validateSuccession } from "@/src/lib/succession";
 
@@ -22,6 +23,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   if (!isTopAuthority(auth.userId, auth.profiles)) {

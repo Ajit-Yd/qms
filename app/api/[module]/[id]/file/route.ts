@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/src/lib/api-auth";
 import { canApproveOrRevise, canSubmitOrUpdate, canViewRecord } from "@/src/lib/permissions";
 import { verifyCsrf } from "@/src/lib/csrf";
+import { enforceUserRateLimit, rateLimitResponse } from "@/src/lib/rate-limit";
 import { fileMetaSelect, isViewableInline, resolveMime, MAX_FILE_BYTES } from "@/src/lib/files";
 import { moduleApiConfig, prismaForModule } from "@/src/lib/qms-record-api";
 import type { ModuleKey } from "@/components/qms";
@@ -43,7 +44,7 @@ export async function GET(request: Request, { params }: Ctx) {
   return new NextResponse(bytes, {
     headers: {
       "content-type": resolveMime(record.fileName, record.fileType) ?? "application/octet-stream",
-      "content-disposition": `${isViewableInline(record.fileName) ? "inline" : "attachment"}; filename="${record.fileName.replace(/["\\]/g, "")}"`,
+      "content-disposition": `${isViewableInline(record.fileName) ? "inline" : "attachment"}; filename="${record.fileName.replace(/[\u0000-\u001f\u007f"\\]/g, "")}"`,
       "content-length": String(bytes.byteLength),
       "cache-control": "private, no-store",
       "x-content-type-options": "nosniff",
@@ -61,6 +62,14 @@ export async function POST(request: Request, { params }: Ctx) {
 
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
+  // Uploads bypass the module factory, so they need their own write budget.
+  const budget = enforceUserRateLimit(auth.userId, "upload", 30, 60 * 1000);
+  if (!budget.allowed) {
+    return NextResponse.json(
+      { error: "Too many uploads. Please wait a moment." },
+      { status: 429, headers: rateLimitResponse(budget.remaining, budget.resetMs) }
+    );
+  }
   const { module: modulePath, id } = await params;
   const moduleKey = resolveModule(modulePath);
   if (!moduleKey) return NextResponse.json({ error: "Unknown module" }, { status: 404 });

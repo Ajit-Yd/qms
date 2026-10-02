@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
+import { verifyCsrf } from "@/src/lib/csrf";
 import { hashResetToken, setPassword } from "@/src/lib/passwords";
 
 export async function POST(request: Request) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const { getClientIp, rateLimit, rateLimitResponse } = await import("@/src/lib/rate-limit");
   const ip = getClientIp(request);
   const { allowed, remaining, resetMs } = rateLimit(`reset:${ip}`, 5, 60 * 60 * 1000);

@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 import { prisma } from "@/src/lib/prisma";
+import { verifyCsrf } from "@/src/lib/csrf";
 import { hashResetToken } from "@/src/lib/passwords";
 
 export async function POST(request: Request) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const { getClientIp, rateLimit, rateLimitResponse } = await import("@/src/lib/rate-limit");
   const ip = getClientIp(request);
   const ipLimit = rateLimit(`forgot:${ip}`, 3, 60 * 60 * 1000);
@@ -57,9 +61,15 @@ export async function POST(request: Request) {
       console.warn("Password reset email failed (non-blocking):", e);
     }
   }
-  if (process.env.NODE_ENV !== "production") {
+  // The token is only ever echoed back when explicitly asked for. Gating this on
+  // NODE_ENV !== "production" used to hand a working reset token to anyone who
+  // could reach a preview/staging deploy still running in development mode.
+  if (process.env.EXPOSE_RESET_TOKEN === "1") {
     console.log(`[password-reset] ${email}: ${resetUrl}`);
     return NextResponse.json({ success: true, message: "Instructions sent if the account exists.", debugToken: rawToken, debugUrl: resetUrl });
+  }
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`[password-reset] ${email}: ${resetUrl}`);
   }
   console.log(`[password-reset] token created for ${profile.id}`);
   return NextResponse.json({ success: true, message: "If the account exists, instructions have been sent." });

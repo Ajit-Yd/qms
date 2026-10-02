@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/src/lib/api-auth";
 import { createModuleRecord, listModuleRecords } from "@/src/lib/qms-record-api";
+import { verifyCsrf } from "@/src/lib/csrf";
 
 export async function GET() {
   const auth = await requireSessionUser();
@@ -15,6 +16,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   try {

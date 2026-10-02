@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
+import { verifyCsrf } from "@/src/lib/csrf";
 import { getProfileById, isMonitorOnly, isTopAuthority, toPublicProfile } from "@/src/lib/permissions";
 import { prismaForModule } from "@/src/lib/qms-record-api";
 import { hashPassword } from "@/src/lib/passwords";
@@ -8,6 +9,9 @@ import { sendNotification } from "@/src/lib/email";
 import type { ModuleKey } from "@/components/qms";
 
 export async function POST(request: Request) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   if (!isTopAuthority(auth.userId, auth.profiles)) {
@@ -38,6 +42,9 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   if (!isTopAuthority(auth.userId, auth.profiles)) {

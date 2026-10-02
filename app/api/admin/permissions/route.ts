@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
+import { verifyCsrf } from "@/src/lib/csrf";
 import { canGrantCommitteePermission, toPublicProfile, validateGrantPermission } from "@/src/lib/permissions";
 
 export async function POST(request: Request) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   if (!canGrantCommitteePermission(auth.userId, auth.profiles)) {

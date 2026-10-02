@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/src/lib/auth";
+import { verifyCsrf } from "@/src/lib/csrf";
 import { changePassword } from "@/src/lib/passwords";
 
 export async function POST(request: Request) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const { getClientIp, rateLimit, rateLimitResponse } = await import("@/src/lib/rate-limit");
   const ip = getClientIp(request);
   const { allowed, remaining, resetMs } = rateLimit(`pwd:${ip}`, 5, 15 * 60 * 1000);

@@ -12,6 +12,7 @@
     "check:seeded-files": "tsx lib/qms-files.check.ts",
     "check:tasks": "tsx src/lib/tasks-api.check.ts",
     "check:tenancy": "tsx src/lib/tenancy.check.ts",
+    "check:security": "tsx src/lib/security.check.ts",
     "prisma:generate": "prisma generate --config prisma.config.ts",
     "prisma:validate": "prisma validate --config prisma.config.ts",
     "prisma:seed": "prisma db seed --config prisma.config.ts"

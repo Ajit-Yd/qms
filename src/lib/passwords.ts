@@ -1,13 +1,25 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/src/lib/prisma";
 
+/**
+ * scrypt cost scales with the input, so an unbounded password turns every login
+ * and reset into an attacker-controlled CPU/memory spike. Nothing legitimate is
+ * anywhere near this long.
+ */
+export const MAX_PASSWORD_LENGTH = 256;
+
 export function hashPassword(password: string) {
+  if (password.length > MAX_PASSWORD_LENGTH) {
+    throw new Error(`Password must be at most ${MAX_PASSWORD_LENGTH} characters`);
+  }
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(password, salt, 64).toString("hex");
   return `${salt}:${hash}`;
 }
 
 export function verifyHash(password: string, storedHash: string) {
+  // Reject before hashing: this is the DoS guard, so it has to come first.
+  if (password.length > MAX_PASSWORD_LENGTH) return false;
   const [salt, expected] = storedHash.split(":");
   if (!salt || !expected) return false;
   const actual = scryptSync(password, salt, 64);

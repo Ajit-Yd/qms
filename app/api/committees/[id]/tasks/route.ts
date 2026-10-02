@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { requireSessionUser } from "@/src/lib/api-auth";
+import { verifyCsrf } from "@/src/lib/csrf";
 import { canAssignCommitteeTask, getProfileById, getSubordinateIds } from "@/src/lib/permissions";
 import { orgScope } from "@/src/lib/tenant";
 import { sendNotification } from "@/src/lib/email";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   const { id: committeeId } = await params;

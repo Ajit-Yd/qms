@@ -334,7 +334,11 @@ export async function updateModuleRecord(
 
 export async function deleteModuleRecord(module: ModuleKey, id: string, userId: string, profiles: Profile[]) {
   const record = await prismaForModule(module).findUnique({ where: { id } });
-  if (!record) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // Already-soft-deleted records are gone for good: no re-delete, so a repeated
+  // request cannot write a second deletion or re-notify anyone.
+  if (!record || ("deletedAt" in record && record.deletedAt)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   if (!canSubmitOrUpdate(userId, record.assignedTo) && !canApproveOrRevise(userId, record.assignedTo, profiles)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -357,7 +361,10 @@ export async function transitionModuleRecord(
     where: { id },
     include: assignedInclude(),
   });
-  if (!record) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // A soft-deleted record must not be submittable or approvable.
+  if (!record || ("deletedAt" in record && record.deletedAt)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   if (action === "submit" && !canSubmitOrUpdate(userId, record.assignedTo)) {
     return NextResponse.json({ error: "Forbidden: only assignee can submit" }, { status: 403 });

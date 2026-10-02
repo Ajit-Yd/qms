@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireSessionUser } from "@/src/lib/api-auth";
+import { verifyCsrf } from "@/src/lib/csrf";
 import { getSubordinateIds, isSuperiorToSubordinate, getProfileById, isMonitorOnly } from "@/src/lib/permissions";
 import { prismaForModule, toModuleKey } from "@/src/lib/qms-record-api";
 import { prisma } from "@/src/lib/prisma";
 import { sendNotification } from "@/src/lib/email";
 
 export async function POST(request: Request) {
+  const csrf = verifyCsrf(request);
+  if (csrf) return csrf;
+
   const auth = await requireSessionUser();
   if ("response" in auth) return auth.response;
   if (isMonitorOnly(auth.userId, auth.profiles)) {
@@ -25,10 +29,18 @@ export async function POST(request: Request) {
   const moduleKey = toModuleKey(String(recordType));
   if (!moduleKey) return NextResponse.json({ error: "Unsupported record type" }, { status: 400 });
 
-  const existing = await prismaForModule(moduleKey).findUnique({ where: { id: String(recordId) } });
-  if (!existing) return NextResponse.json({ error: "Record not found" }, { status: 404 });
+  // The assignee check above only proves we may hand the record to that person.
+  // The record itself must also be ours: currently assigned to us or to someone
+  // in our own span of control, inside our organization. Without this, any
+  // authenticated user can seize any record in any tenant by assigning it to self.
+  const manageable = [auth.userId, ...getSubordinateIds(auth.userId, auth.profiles)];
+  const model = prismaForModule(moduleKey);
+  const existing = await model.findFirst({
+    where: { id: String(recordId), assignedTo: { in: manageable } },
+  });
+  if (!existing) return NextResponse.json({ error: "Record not found in your organization" }, { status: 404 });
 
-  const updated = await prismaForModule(moduleKey).update({
+  const updated = await model.update({
     where: { id: String(recordId) },
     data: { assignedTo } as never,
   });
