@@ -6,7 +6,16 @@ export type Profile = {
   reportsTo: string | null;
   active?: boolean;
   canManageCommittees?: boolean;
+  /** Defaults to Aman PVT Ltd; the second tenant sets this explicitly. */
+  organizationId?: string;
+  systemRole?: "primary_admin" | "org_admin" | "member";
 };
+
+/** The organization-level entry portal: log in by picking your company. */
+export const organizations = [
+  { id: "org_main", name: "Aman PVT Ltd" },
+  { id: "org_ajit", name: "Ajit PVT Ltd" },
+] as const;
 
 export const profiles: Profile[] = [
   { id: "p-director", name: "Alicia Reed", email: "alicia.reed@qms.local", roleTitle: "Director", reportsTo: null, active: true, canManageCommittees: false },
@@ -21,6 +30,13 @@ export const profiles: Profile[] = [
   { id: "p-staff-2", name: "Nia Patel", email: "nia.patel@qms.local", roleTitle: "QA Technician", reportsTo: "p-owner-2", active: true, canManageCommittees: false },
   { id: "p-staff-3", name: "Tom Brooks", email: "tom.brooks@qms.local", roleTitle: "Operations Specialist", reportsTo: "p-owner-3", active: true, canManageCommittees: false },
   { id: "p-staff-4", name: "Mila Gomez", email: "mila.gomez@qms.local", roleTitle: "Document Controller", reportsTo: "p-owner-4", active: true, canManageCommittees: false },
+
+  // Ajit PVT Ltd — its own tenant. Root here is that org's Secondary Admin,
+  // not a global Primary Admin; only one org holds that role.
+  { id: "a-admin", name: "Ajit Sharma", email: "ajit.sharma@ajit.local", roleTitle: "Director", reportsTo: null, active: true, canManageCommittees: true, organizationId: "org_ajit", systemRole: "org_admin" },
+  { id: "a-lead", name: "Priyanka Nair", email: "priyanka.nair@ajit.local", roleTitle: "Quality Lead", reportsTo: "a-admin", active: true, canManageCommittees: true, organizationId: "org_ajit", systemRole: "org_admin" },
+  { id: "a-staff-1", name: "Rahul Verma", email: "rahul.verma@ajit.local", roleTitle: "Process Owner", reportsTo: "a-lead", active: true, canManageCommittees: false, organizationId: "org_ajit" },
+  { id: "a-staff-2", name: "Sneha Iyer", email: "sneha.iyer@ajit.local", roleTitle: "QA Analyst", reportsTo: "a-lead", active: true, canManageCommittees: false, organizationId: "org_ajit" },
 ];
 
 export const recordsByModule = {
@@ -40,6 +56,9 @@ export const recordsByModule = {
     { id: "doc-13", title: "Complaint Handling Procedure Rev 2", assignedTo: "p-owner-4", status: "Done", revision: "2", updated: "2026-04-14" },
     { id: "doc-14", title: "Cleaning Validation Protocol", assignedTo: "p-owner-3", status: "Draft", revision: "1", updated: "2026-09-09" },
     { id: "doc-15", title: "Good Distribution Practice Checklist", assignedTo: "p-lead-ops", status: "Pending", revision: "1", updated: "2026-09-11" },
+    // Ajit PVT Ltd tenant — invisible to anyone in Aman PVT Ltd.
+    { id: "ajit-doc-1", title: "Ajit SOP-001 Document Control Procedure Rev 2", assignedTo: "a-staff-2", status: "In progress", revision: "2", updated: "2026-09-12" },
+    { id: "ajit-doc-2", title: "Ajit Quality Manual Rev 3", assignedTo: "a-lead", status: "Approved", revision: "3", updated: "2026-09-15" },
   ],
   capa: [
     { id: "capa-1", title: "Seal integrity drift on Line 2", assignedTo: "p-staff-3", priority: "High", status: "In progress", dueDate: "2026-08-28" },
@@ -54,6 +73,8 @@ export const recordsByModule = {
     { id: "capa-10", title: "Cleaning validation for Line 2 overdue", assignedTo: "p-owner-3", priority: "Medium", status: "Done", dueDate: "2026-08-19" },
     { id: "capa-11", title: "Complaint response time exceeds target", assignedTo: "p-owner-4", priority: "Medium", status: "Pending", dueDate: "2026-10-18" },
     { id: "capa-12", title: "Data integrity gap in release testing", assignedTo: "p-staff-1", priority: "Critical", status: "In progress", dueDate: "2026-09-15" },
+    { id: "ajit-capa-1", title: "Ajit: rework rate above target on Line A", assignedTo: "a-staff-1", priority: "High", status: "In progress", dueDate: "2026-10-02" },
+    { id: "ajit-capa-2", title: "Ajit: expired reagent lot used in testing", assignedTo: "a-staff-2", priority: "Critical", status: "Overdue", dueDate: "2026-09-10" },
   ],
   nonconformances: [
     { id: "nc-1", title: "Complaint from regional distributor", assignedTo: "p-owner-4", source: "Customer", severity: "High", status: "Pending", date: "2026-08-19" },
@@ -68,6 +89,8 @@ export const recordsByModule = {
     { id: "nc-10", title: "Glass fragments found in reject bin", assignedTo: "p-staff-3", source: "Internal", severity: "Critical", status: "Open", date: "2026-09-11" },
     { id: "nc-11", title: "HVAC filter replacement overdue in cleanroom", assignedTo: "p-owner-3", source: "Supplier", severity: "Low", status: "Closed", date: "2026-06-30" },
     { id: "nc-12", title: "Retest result inconsistent with original OOS", assignedTo: "p-staff-1", source: "Internal", severity: "High", status: "Pending", date: "2026-09-08" },
+    { id: "ajit-nc-1", title: "Ajit: customer complaint on seal strength", assignedTo: "a-staff-1", source: "Customer", severity: "Medium", status: "Pending", date: "2026-09-12" },
+    { id: "ajit-nc-2", title: "Ajit: label legibility failure in batch log", assignedTo: "a-staff-2", source: "Internal", severity: "High", status: "Open", date: "2026-09-14" },
   ],
   audits: [
     { id: "audit-1", title: "Internal audit checklist", assignedTo: "p-owner-1", status: "Done", date: "2026-08-17" },
@@ -78,6 +101,7 @@ export const recordsByModule = {
     { id: "audit-6", title: "Annual internal audit cycle 2026 kickoff", assignedTo: "p-lead-qa", status: "Pending", date: "2026-10-01" },
     { id: "audit-7", title: "Cold chain distribution audit", assignedTo: "p-owner-4", status: "Scheduled", date: "2026-10-15" },
     { id: "audit-8", title: "Training effectiveness audit", assignedTo: "p-staff-3", status: "Done", date: "2026-07-22" },
+    { id: "ajit-audit-1", title: "Ajit internal audit programme 2026", assignedTo: "a-staff-2", status: "In progress", date: "2026-09-20" },
   ],
   training: [
     { id: "train-1", employee: "Chris Allen", assignedTo: "p-staff-1", course: "GxP Foundations", status: "Done", dueDate: "2026-08-15" },
@@ -92,13 +116,16 @@ export const recordsByModule = {
     { id: "train-10", employee: "Chris Allen", assignedTo: "p-staff-1", course: "Visual Inspection Fundamentals", status: "In progress", dueDate: "2026-10-12" },
     { id: "train-11", employee: "Mila Gomez", assignedTo: "p-staff-4", course: "Supplier Qualification", status: "Overdue", dueDate: "2026-08-18" },
     { id: "train-12", employee: "Tom Brooks", assignedTo: "p-staff-3", course: "EHS Awareness", status: "Done", dueDate: "2026-06-27" },
+    { id: "ajit-train-1", employee: "Rahul Verma", assignedTo: "a-staff-1", course: "Ajit GxP Induction", status: "In progress", dueDate: "2026-09-30" },
+    { id: "ajit-train-2", employee: "Sneha Iyer", assignedTo: "a-staff-2", course: "Ajit Data Integrity", status: "Pending", dueDate: "2026-10-08" },
   ],
 } as const;
 
 export const committees = [
-  { id: "c-qa", name: "Quality Assurance Committee", description: "Oversees quality policies and standards", createdBy: "p-deputy", createdAt: "2026-01-15" },
-  { id: "c-safety", name: "Safety & Compliance Committee", description: "Manages workplace safety and regulatory compliance", createdBy: "p-deputy", createdAt: "2026-02-01" },
-  { id: "c-innovation", name: "Process Innovation Committee", description: "Drives process improvements and new initiatives", createdBy: "p-lead-qa", createdAt: "2026-03-10" },
+  { id: "c-qa", name: "Quality Assurance Committee", description: "Oversees quality policies and standards", createdBy: "p-deputy", createdAt: "2026-01-15", organizationId: "org_main" },
+  { id: "c-safety", name: "Safety & Compliance Committee", description: "Manages workplace safety and regulatory compliance", createdBy: "p-deputy", createdAt: "2026-02-01", organizationId: "org_main" },
+  { id: "c-innovation", name: "Process Innovation Committee", description: "Drives process improvements and new initiatives", createdBy: "p-lead-qa", createdAt: "2026-03-10", organizationId: "org_main" },
+  { id: "ajit-c-qa", name: "Ajit Quality Committee", description: "Ajit PVT Ltd quality governance", createdBy: "a-admin", createdAt: "2026-04-01", organizationId: "org_ajit" },
 ];
 
 export const committeeMemberships = [
@@ -115,6 +142,10 @@ export const committeeMemberships = [
   { id: "cm-11", committeeId: "c-innovation", profileId: "p-owner-1", roleInCommittee: "member" as const },
   { id: "cm-12", committeeId: "c-innovation", profileId: "p-owner-2", roleInCommittee: "member" as const },
   { id: "cm-13", committeeId: "c-innovation", profileId: "p-staff-1", roleInCommittee: "member" as const },
+  { id: "ajit-cm-1", committeeId: "ajit-c-qa", profileId: "a-admin", roleInCommittee: "head" as const },
+  { id: "ajit-cm-2", committeeId: "ajit-c-qa", profileId: "a-lead", roleInCommittee: "member" as const },
+  { id: "ajit-cm-3", committeeId: "ajit-c-qa", profileId: "a-staff-1", roleInCommittee: "member" as const },
+  { id: "ajit-cm-4", committeeId: "ajit-c-qa", profileId: "a-staff-2", roleInCommittee: "member" as const },
 ];
 
 export const committeeTasks = [
@@ -130,6 +161,9 @@ export const committeeTasks = [
   { id: "ct-10", committeeId: "c-innovation", title: "Reduce change control cycle time", description: "Target 10 working days from request to approval", assignedTo: "p-owner-1", assignedBy: "p-lead-qa", status: "approved" as const, dueDate: "2026-09-12", createdAt: "2026-08-18" },
   { id: "ct-11", committeeId: "c-safety", title: "Refresh emergency evacuation plan", description: "Update assembly points after the site extension", assignedTo: "p-staff-3", assignedBy: "p-lead-ops", status: "assigned" as const, dueDate: "2026-10-10", createdAt: "2026-09-09" },
   { id: "ct-12", committeeId: "c-qa", title: "Consolidate training matrix", description: "Single source of truth for who is trained on what", assignedTo: "p-staff-4", assignedBy: "p-deputy", status: "in_progress" as const, dueDate: "2026-09-25", createdAt: "2026-09-08" },
+  { id: "ajit-ct-1", committeeId: "ajit-c-qa", title: "Ajit: review rework root causes", description: "Analyse Line A rework drivers from Q2 data", assignedTo: "a-staff-1", assignedBy: "a-lead", status: "in_progress" as const, dueDate: "2026-10-01", createdAt: "2026-09-05" },
+  { id: "ajit-ct-2", committeeId: "ajit-c-qa", title: "Ajit: close reagent expiry deviation", description: "Raise a supplier deviation and update storage SOP", assignedTo: "a-staff-2", assignedBy: "a-admin", status: "submitted" as const, dueDate: "2026-09-20", createdAt: "2026-09-10" },
+  { id: "ajit-ct-3", committeeId: "ajit-c-qa", title: "Ajit: publish audit schedule", description: "Confirm 2026 internal audit calendar", assignedTo: "a-lead", assignedBy: "a-admin", status: "assigned" as const, dueDate: "2026-10-15", createdAt: "2026-09-15" },
 ];
 
 /** Seeded meetings, so the meetings dashboard is not empty. */
@@ -139,6 +173,7 @@ export const meetings = [
   { id: "mt-3", committeeId: "c-qa", title: "Monthly QMS review - September", scheduledAt: "2026-09-25T14:00:00.000Z", location: "Conference Room A", organizedBy: "p-deputy", status: "Scheduled", notes: null, agenda: "1. CAPA metrics\n2. Document control update\n3. Audit schedule" },
   { id: "mt-4", committeeId: "c-innovation", title: "Electronic batch record feasibility", scheduledAt: "2026-09-30T11:00:00.000Z", location: "Meeting Room C", organizedBy: "p-lead-qa", status: "Scheduled", notes: null, agenda: "Current paper process\nVendor options\nCost estimate" },
   { id: "mt-5", committeeId: "c-safety", title: "Emergency preparedness tabletop", scheduledAt: "2026-10-08T13:30:00.000Z", location: "Conference Room A", organizedBy: "p-lead-ops", status: "Scheduled", notes: null, agenda: "Evacuation scenario\nCommunication tree" },
+  { id: "ajit-mt-1", committeeId: "ajit-c-qa", title: "Ajit monthly quality review - September", scheduledAt: "2026-09-28T10:00:00.000Z", location: "Ajit Board Room", organizedBy: "a-admin", status: "Scheduled", notes: null, agenda: "1. Rework trends\n2. Expiry deviation\n3. Audit schedule" },
 ];
 
 export function getProfileById(id: string) {

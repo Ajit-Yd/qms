@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import {
+  organizations,
   profiles,
   recordsByModule,
   committees,
@@ -60,29 +61,17 @@ await prisma.committeeTask.deleteMany();
   const rootProfiles = profiles.filter((profile) => !profile.reportsTo);
   const childProfiles = profiles.filter((profile) => profile.reportsTo);
 
-  console.log("🏢 Seeding organization...");
-  const organization = await prisma.organization.create({
-    data: { id: "org_main", name: "Main Organization" },
-  });
-
-  console.log("📦 Seeding profiles...");
-  for (const profile of rootProfiles) {
-    await prisma.profile.create({
-      data: {
-        id: profile.id,
-        name: profile.name,
-        email: emailFor(profile),
-        roleTitle: profile.roleTitle,
-        reportsTo: profile.reportsTo,
-        organizationId: organization.id,
-        systemRole: "primary_admin",
-        canManageCommittees: profile.canManageCommittees ?? false,
-        passwordHash: hashPassword(profilePasswords[profile.id] ?? DEMO_PASSWORD),
-      },
-    });
+  console.log("🏢 Seeding organizations...");
+  for (const org of organizations) {
+    await prisma.organization.create({ data: { id: org.id, name: org.name } });
   }
 
-  for (const profile of childProfiles) {
+  console.log("📦 Seeding profiles...");
+  // Roots become Primary Admin only in the first org; the other tenant's root
+  // is that org's own admin, so exactly one global Primary Admin exists.
+  for (const profile of [...rootProfiles, ...childProfiles]) {
+    const organizationId = profile.organizationId ?? "org_main";
+    const isRoot = !profile.reportsTo;
     await prisma.profile.create({
       data: {
         id: profile.id,
@@ -90,8 +79,10 @@ await prisma.committeeTask.deleteMany();
         email: emailFor(profile),
         roleTitle: profile.roleTitle,
         reportsTo: profile.reportsTo,
-        organizationId: organization.id,
-        systemRole: profile.canManageCommittees ? "org_admin" : "member",
+        organizationId,
+        systemRole:
+          profile.systemRole ??
+          (isRoot ? (organizationId === "org_main" ? "primary_admin" : "org_admin") : profile.canManageCommittees ? "org_admin" : "member"),
         canManageCommittees: profile.canManageCommittees ?? false,
         passwordHash: hashPassword(profilePasswords[profile.id] ?? DEMO_PASSWORD),
       },
@@ -212,7 +203,7 @@ await prisma.committeeTask.deleteMany();
         name: committee.name,
         description: committee.description,
         createdBy: committee.createdBy,
-        organizationId: organization.id,
+        organizationId: committee.organizationId ?? "org_main",
         createdAt: committee.createdAt ? new Date(committee.createdAt) : undefined,
       },
     });
@@ -414,8 +405,9 @@ await prisma.committeeTask.deleteMany();
   }
   for (const profile of [...rootProfiles, ...childProfiles]) {
     const pwd = profilePasswords[profile.id] ?? DEMO_PASSWORD;
+    const orgName = organizations.find((o) => o.id === (profile.organizationId ?? "org_main"))?.name ?? "org_main";
     // Only print in dev/seed context; never log in production request handlers
-    console.log(`  ${emailFor(profile).padEnd(34)} ${profile.roleTitle.padEnd(20)} ${pwd}`);
+    console.log(`  ${orgName.padEnd(16)} ${emailFor(profile).padEnd(32)} ${profile.roleTitle.padEnd(20)} ${pwd}`);
   }
   if (!hasCustomPasswords) {
     console.warn("⚠️  Seed used a shared demo password. Rotate via SEED_PASSWORD / SEED_PASSWORDS_JSON for real deployments.");

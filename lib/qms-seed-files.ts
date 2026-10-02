@@ -116,6 +116,19 @@ export const documentFiles: Record<string, SeedFile> = {
   "doc-13": pdf("Complaint Handling Procedure Rev 2", docHeader("SOP-009", "2", "Elena Torres")),
   "doc-14": pdf("Cleaning Validation Protocol", docHeader("VP-004", "1", "Daniel Kim")),
   "doc-15": pdf("Good Distribution Practice Checklist", docHeader("GDP-001", "1", "Sara Khan")),
+  // Ajit PVT Ltd tenant documents — used to prove cross-org file access is denied.
+  "ajit-doc-1": pdf("Ajit SOP-001 Document Control Procedure Rev 2", docHeader("A-SOP-001", "2", "Sneha Iyer")),
+  "ajit-doc-2": pdf("Ajit Quality Manual Rev 3", [
+    "Ajit Quality Manual",
+    "Revision: 3    Effective: 2026-07-01",
+    "",
+    "1. Quality Policy",
+    "Ajit PVT Ltd is committed to consistent product quality and continuous improvement.",
+    "",
+    "2. Quality Objectives",
+    "Reduce scrap by 20% year over year.",
+    "Close all expiry-related deviations within 30 days.",
+  ]),
 };
 
 export const supplierAuditCsv = csv("supplier-audit-scorecard.csv", [

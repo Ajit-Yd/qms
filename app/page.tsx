@@ -288,13 +288,16 @@ export default function Home({
     return currentList.find((record) => record.id === selectedRecordId) ?? currentList[0] ?? null;
   }, [activeModule, records, selectedRecordId]);
 
-  const refetchRecord = async (id: string) => {
-    const response = await fetch(apiPath("documents", id));
+  const refetchRecord = async (moduleKey: ModuleKey, id: string) => {
+    const response = await fetch(apiPath(moduleKey, id));
     if (!response.ok) return;
     const data = await response.json();
+    // Detail routes are inconsistent: most return {record}, capa returns {capa}.
+    const updated = (data.record ?? data[moduleKey]) as ModuleRecord | undefined;
+    if (!updated) return;
     setRecords((prev) => ({
       ...prev,
-      documents: (prev.documents ?? []).map((item) => (item.id === id ? { ...item, ...data.record } : item)),
+      [moduleKey]: (prev[moduleKey] ?? []).map((item) => (item.id === id ? { ...item, ...updated } : item)),
     }));
   };
 
@@ -923,7 +926,7 @@ export default function Home({
                           canSubmitOrUpdate(viewerId, String(currentRecord.assignedTo)) ||
                           canApproveOrRevise(viewerId, String(currentRecord.assignedTo), profiles)
                         }
-                        onChange={() => void refetchRecord(currentRecord.id)}
+                        onChange={() => void refetchRecord(activeModule, currentRecord.id)}
                       />
 
                     <div className="mt-5 rounded-xl border border-slate-200 bg-white p-3">

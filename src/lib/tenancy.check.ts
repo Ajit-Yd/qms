@@ -22,7 +22,7 @@ async function main() {
   const orgs = await prisma.organization.findMany();
   const committees = await prisma.committee.findMany();
 
-  check("one organization seeded", orgs.length, 1);
+  check("two organizations seeded", orgs.length, 2);
   check("every profile has an organization", all.filter((p) => !p.organizationId).length, 0);
   check("every committee has an organization", committees.filter((c) => !c.organizationId).length, 0);
 

@@ -39,7 +39,7 @@ const allFiles = {
   audits: auditFiles,
   training: trainingFiles,
 };
-const counts = { documents: 15, capa: 12, nonconformances: 12, audits: 8, training: 12 };
+const counts = { documents: 17, capa: 14, nonconformances: 14, audits: 9, training: 14 };
 let pdfs = 0;
 for (const [module, files] of Object.entries(allFiles)) {
   assert.equal(Object.keys(files).length, counts[module as keyof typeof counts], `${module}: expected ${counts[module as keyof typeof counts]} files`);
@@ -57,7 +57,7 @@ for (const [module, files] of Object.entries(allFiles)) {
     }
   }
 }
-assert.equal(pdfs, 15 + 11 + 9 + 7 + 12, "expected 54 seeded PDFs");
+assert.equal(pdfs, 17 + 13 + 11 + 8 + 14, "expected 63 seeded PDFs");
 
 const csv = makeCsv([["a", "b"], ["1", "2"]]);
 assert.equal(csv.toString("utf8"), "a,b\n1,2");
