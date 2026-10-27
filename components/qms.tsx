@@ -375,11 +375,11 @@ export function RecordForm({
       </div>
 
       <div className="flex justify-end gap-3 pt-2">
-        {onCancel && <Button type="button" variant="secondary" size="lg" onClick={onCancel}>Cancel</Button>}
+        {onCancel && <Button type="button" variant="secondary" size="md" onClick={onCancel}>Cancel</Button>}
         <Button
           type="submit"
           variant="primary"
-          size="lg"
+          size="md"
           style={{ backgroundColor: moduleConfig[moduleKey].accent, borderColor: moduleConfig[moduleKey].accent }}
           className="min-w-[140px] shadow-md"
         >

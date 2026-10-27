@@ -584,7 +584,7 @@ export default function Home({
                   type="button"
                   aria-label={module.label}
                   onClick={() => { setActiveModule(module.key); setPage(1); setShowNewForm(false); setEditingRecordId(null); setSelectedRecordId(null); syncUrl(`/${modulePath(module.key)}`); }}
-                  className={`group flex flex-col items-center gap-1.5 shrink-0 rounded-xl border text-[11px] transition-all duration-200 sm:h-11 sm:w-11 sm:flex-row sm:gap-2 sm:px-3 sm:items-center lg:h-auto lg:w-auto lg:min-w-[72px] lg:py-2 lg:px-2.5 ${
+                  className={`group flex flex-col items-center gap-1.5 shrink-0 rounded-xl border text-[11px] transition-all duration-200 sm:h-11 sm:w-11 sm:rounded-2xl lg:flex-row lg:gap-2 lg:px-3 lg:items-center lg:h-auto lg:w-auto lg:min-w-[72px] lg:py-2 lg:px-2.5 ${
                     activeModule === module.key
                       ? "bg-white text-[#1E2530] border-white shadow-md scale-[1.02]"
                       : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
@@ -592,7 +592,7 @@ export default function Home({
                   title={module.label}
                 >
                   <ModuleIcon moduleKey={module.key} size={activeModule === module.key ? "md" : "sm"} />
-                  <span className="sm:hidden lg:block text-xs font-medium leading-tight">{module.label}</span>
+                  <span className="hidden lg:block text-xs font-medium leading-tight">{module.label}</span>
                 </button>
               ))}
             </nav>
@@ -792,7 +792,7 @@ export default function Home({
                 )}
                 <Button
                   variant="secondary"
-                  size="lg"
+                  size="md"
                   onClick={() => {
                     setSearch("");
                     setStatusFilter("all");
@@ -803,7 +803,7 @@ export default function Home({
                 </Button>
                 <Button
                   variant="primary"
-                  size="lg"
+                  size="md"
                   disabled={!canCreateRecords(viewerId, profiles)}
                   title={!canCreateRecords(viewerId, profiles) ? "Monitor-only role cannot create records" : undefined}
                   onClick={() => {
@@ -888,20 +888,20 @@ export default function Home({
 
                     <div className="mt-4 flex flex-wrap gap-3">
                       {canSubmitOrUpdate(viewerId, String(currentRecord.assignedTo)) && (
-                        <Button variant="primary" size="lg" onClick={() => handleWorkflow(activeModule, currentRecord.id, "submit", "Submitted for review.")}>Submit for review</Button>
+                        <Button variant="primary" size="md" onClick={() => handleWorkflow(activeModule, currentRecord.id, "submit", "Submitted for review.")}>Submit for review</Button>
                       )}
                       {canSubmitOrUpdate(viewerId, String(currentRecord.assignedTo)) && (
-                        <Button variant="secondary" size="lg" onClick={() => { setEditingRecordId(currentRecord.id); setShowNewForm(false); syncUrl(`/${modulePath(activeModule)}/${currentRecord.id}/edit`); }}>Edit record</Button>
+                        <Button variant="secondary" size="md" onClick={() => { setEditingRecordId(currentRecord.id); setShowNewForm(false); syncUrl(`/${modulePath(activeModule)}/${currentRecord.id}/edit`); }}>Edit record</Button>
                       )}
                       {canApproveOrRevise(viewerId, String(currentRecord.assignedTo), profiles) && (
                         <>
-                          <Button variant="success" size="lg" onClick={() => handleWorkflow(activeModule, currentRecord.id, "approve", "Approved by manager.")}>Approve</Button>
-                          <Button variant="destructive" size="lg" onClick={() => handleWorkflow(activeModule, currentRecord.id, "revise", "Revise and redirect per request.")}>Revise &amp; redirect</Button>
+                          <Button variant="success" size="md" onClick={() => handleWorkflow(activeModule, currentRecord.id, "approve", "Approved by manager.")}>Approve</Button>
+                          <Button variant="destructive" size="md" onClick={() => handleWorkflow(activeModule, currentRecord.id, "revise", "Revise and redirect per request.")}>Revise &amp; redirect</Button>
                         </>
                       )}
                       <Button
                         variant="outline"
-                        size="lg"
+                        size="md"
                         onClick={() => handleDeleteRecord(activeModule, currentRecord.id)}
                         className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-300 hover:text-red-800"
                       >
