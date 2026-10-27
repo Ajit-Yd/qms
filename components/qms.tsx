@@ -111,6 +111,7 @@ export function DataTable<T extends Record<string, unknown>>({
   onViewHistory?: (row: T) => void;
 }) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -131,7 +132,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
   if (!rows.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500">
+      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-base text-slate-500 text-center">
         No records found for this view.
       </div>
     );
@@ -140,11 +141,11 @@ export function DataTable<T extends Record<string, unknown>>({
   return (
     <div ref={containerRef} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
       <div className="hidden md:block overflow-x-auto">
-        <table className="min-w-full text-left text-sm text-slate-700">
+        <table className="min-w-full text-left text-base text-slate-700">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               {columns.map((column) => (
-                <th key={String(column.key)} className="px-4 py-3 font-medium">
+                <th key={String(column.key)} className="px-5 py-4 font-medium">
                   {column.label}
                 </th>
               ))}
@@ -158,27 +159,65 @@ export function DataTable<T extends Record<string, unknown>>({
                 className={`border-t border-slate-200 ${onRowClick ? "cursor-pointer hover:bg-slate-50" : ""}`}
               >
                 {columns.map((column) => (
-                  <td key={`${String(row.id ?? JSON.stringify(row))}-${String(column.key)}`} className="px-4 py-3 align-middle">
+                  <td key={`${String(row.id ?? JSON.stringify(row))}-${String(column.key)}`} className="px-5 py-4 align-middle">
                     {column.render ? column.render(row) : String(row[column.key] ?? "-")}
                   </td>
                 ))}
-                <td className="relative px-4 py-3 text-right" onClick={(event) => event.stopPropagation()}>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Actions for ${String(row.title ?? row.id ?? "record")}`}
-                    aria-expanded={openMenuId === String(row.id)}
-                    aria-haspopup="menu"
-                    onClick={() => setOpenMenuId((current) => current === String(row.id) ? null : String(row.id))}
-                    className="text-slate-500"
-                  >
-                    ⋯
-                  </Button>
-                  {openMenuId === String(row.id) && (
-                    <div className="absolute right-2 top-10 z-10 w-40 rounded-xl border border-slate-200 bg-white p-1.5 text-left shadow-xl animate-in">
-                      <button type="button" onClick={() => { onEdit?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">✎ Edit</button>
-                      <button type="button" onClick={() => { onDelete?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-700 transition hover:bg-red-50">🗑 Delete</button>
-                      <button type="button" onClick={() => { onViewHistory?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50">◷ View history</button>
+                <td className="relative px-5 py-4 text-right" onClick={(event) => event.stopPropagation()}>
+                  <div className="flex items-center gap-1">
+                    {onEdit && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Edit ${String(row.title ?? row.id ?? "record")}`}
+                        onClick={() => { onEdit?.(row); setOpenMenuId(null); }}
+                        className="text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                      >
+                        ✎ Edit
+                      </Button>
+                    )}
+                    {onViewHistory && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`View history for ${String(row.title ?? row.id ?? "record")}`}
+                        onClick={() => { onViewHistory?.(row); setOpenMenuId(null); }}
+                        className="text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                      >
+                        ◷ History
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        aria-label={`Delete ${String(row.title ?? row.id ?? "record")}`}
+                        onClick={() => setDeleteConfirmId(String(row.id ?? JSON.stringify(row)))}
+                        className="text-red-700 hover:text-red-900 hover:bg-red-50"
+                      >
+                        🗑 Delete
+                      </Button>
+                    )}
+                  </div>
+                  {deleteConfirmId === String(row.id ?? JSON.stringify(row)) && (
+                    <div className="absolute right-2 top-14 z-10 w-48 rounded-xl border border-red-200 bg-white p-2 shadow-xl animate-in text-xs">
+                      <p className="mb-2 text-center text-slate-700">Delete this record?</p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => { setDeleteConfirmId(null); onDelete?.(row); }}
+                          className="flex-1 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+                        >
+                          Yes, delete
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirmId(null)}
+                          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   )}
                 </td>
@@ -193,23 +232,71 @@ export function DataTable<T extends Record<string, unknown>>({
           <div
             key={String(row.id ?? JSON.stringify(row))}
             onClick={() => onRowClick?.(row)}
-            className={`rounded-xl border border-slate-200 bg-slate-50 p-3 ${onRowClick ? "cursor-pointer hover:bg-slate-100" : ""}`}
+            className={`rounded-xl border border-slate-200 bg-slate-50 p-4 ${onRowClick ? "cursor-pointer hover:bg-slate-100" : ""}`}
           >
             {columns.map((column) => (
-              <div key={`${String(row.id ?? JSON.stringify(row))}-mobile-${String(column.key)}`} className="flex items-center justify-between gap-3 py-1.5">
-                <span className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500">{column.label}</span>
-                <span className="text-right text-sm text-slate-700">
+              <div key={`${String(row.id ?? JSON.stringify(row))}-mobile-${String(column.key)}`} className="flex items-center justify-between gap-3 py-2">
+                <span className="text-sm font-medium uppercase tracking-[0.08em] text-slate-500">{column.label}</span>
+                <span className="text-right text-base text-slate-700">
                   {column.render ? column.render(row) : String(row[column.key] ?? "-")}
                 </span>
               </div>
             ))}
             <div className="relative mt-2 flex justify-end" onClick={(event) => event.stopPropagation()}>
-              <Button variant="ghost" size="icon-sm" aria-label={`Actions for ${String(row.title ?? row.id ?? "record")}`} aria-expanded={openMenuId === String(row.id)} aria-haspopup="menu" onClick={() => setOpenMenuId((current) => current === String(row.id) ? null : String(row.id))} className="bg-white text-slate-500 shadow-sm">⋯</Button>
-              {openMenuId === String(row.id) && (
-                <div className="absolute right-0 top-8 z-10 w-40 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl animate-in">
-                  <button type="button" onClick={() => { onEdit?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-slate-50">✎ Edit</button>
-                  <button type="button" onClick={() => { onDelete?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-red-700 hover:bg-red-50">🗑 Delete</button>
-                  <button type="button" onClick={() => { onViewHistory?.(row); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium hover:bg-slate-50">◷ View history</button>
+              <div className="flex items-center gap-1">
+                {onEdit && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Edit ${String(row.title ?? row.id ?? "record")}`}
+                    onClick={() => { onEdit?.(row); setOpenMenuId(null); }}
+                    className="text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  >
+                    ✎ Edit
+                  </Button>
+                )}
+                {onViewHistory && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`View history for ${String(row.title ?? row.id ?? "record")}`}
+                    onClick={() => { onViewHistory?.(row); setOpenMenuId(null); }}
+                    className="text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  >
+                    ◷ History
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    aria-label={`Delete ${String(row.title ?? row.id ?? "record")}`}
+                    onClick={() => setDeleteConfirmId(String(row.id ?? JSON.stringify(row)))}
+                    className="text-red-700 hover:text-red-900 hover:bg-red-50"
+                  >
+                    🗑 Delete
+                  </Button>
+                )}
+              </div>
+              {deleteConfirmId === String(row.id ?? JSON.stringify(row)) && (
+                <div className="absolute right-0 top-10 z-10 w-48 rounded-xl border border-red-200 bg-white p-2 shadow-xl animate-in text-xs">
+                  <p className="mb-2 text-center text-slate-700">Delete this record?</p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setDeleteConfirmId(null); onDelete?.(row); }}
+                      className="flex-1 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+                    >
+                      Yes, delete
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmId(null)}
+                      className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -305,13 +392,13 @@ export function RecordForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <h3 className="text-base font-semibold text-slate-800">New record</h3>
-        <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">Draft</span>
+    <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6">
+      <div className="mb-3 flex items-center justify-between gap-4">
+        <h3 className="text-lg font-semibold text-slate-900">New record</h3>
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">Draft</span>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         {fields.map((field) => {
           const id = field.label.toLowerCase().replace(/\s+/g, "");
           const key =
@@ -320,12 +407,12 @@ export function RecordForm({
           if (field.type === "select") {
             const options = field.options ?? profiles.map((profile) => profile.name);
             return (
-              <label key={id} className="block text-sm text-slate-600">
-                <span className="mb-1.5 block font-medium">{field.label}</span>
+              <label key={id} className="block text-base text-slate-600">
+                <span className="mb-2 block font-medium text-slate-800">{field.label}</span>
                 <select
                   name={key}
                   defaultValue={initialValues?.[key] ?? defaultValues[key] ?? profiles[0]?.id ?? ""}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base outline-none transition focus:border-[#1D9E75] focus:bg-white"
                 >
                   {key === "assignedTo"
                     ? profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)
@@ -336,27 +423,27 @@ export function RecordForm({
           }
 
           return (
-            <label key={id} className="block text-sm text-slate-600">
-              <span className="mb-1.5 block font-medium">{field.label}</span>
+            <label key={id} className="block text-base text-slate-600">
+              <span className="mb-2 block font-medium text-slate-800">{field.label}</span>
               <input
                 type={field.type ?? "text"}
                 name={key}
                 defaultValue={initialValues?.[key] ?? defaultValues[key] ?? ""}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-base outline-none transition focus:border-[#1D9E75] focus:bg-white"
               />
             </label>
           );
         })}
       </div>
 
-      <div className="flex justify-end gap-2 pt-1">
-        {onCancel && <Button type="button" variant="secondary" size="md" onClick={onCancel}>Cancel</Button>}
+      <div className="flex justify-end gap-3 pt-2">
+        {onCancel && <Button type="button" variant="secondary" size="lg" onClick={onCancel}>Cancel</Button>}
         <Button
           type="submit"
           variant="primary"
-          size="md"
+          size="lg"
           style={{ backgroundColor: moduleConfig[moduleKey].accent, borderColor: moduleConfig[moduleKey].accent }}
-          className="min-w-[120px] shadow-md"
+          className="min-w-[140px] shadow-md"
         >
           Save record
         </Button>

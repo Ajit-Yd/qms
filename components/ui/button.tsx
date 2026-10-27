@@ -70,12 +70,12 @@ const variants: Record<ButtonVariant, string> = {
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-xs rounded-lg gap-1.5",
-  md: "h-9 px-4 text-sm rounded-xl",
-  lg: "h-10 px-5 text-sm rounded-xl",
-  xl: "h-11 px-6 text-[15px] rounded-xl",
-  "icon-sm": "h-8 w-8 rounded-lg p-0",
-  icon: "h-9 w-9 rounded-xl p-0",
+  sm: "h-9 px-3 text-xs rounded-lg gap-1.5",
+  md: "h-10 px-4 text-base rounded-xl gap-2",
+  lg: "h-11 px-5 text-base rounded-xl gap-2",
+  xl: "h-12 px-7 text-lg rounded-xl gap-3",
+  "icon-sm": "h-9 w-9 rounded-lg p-0",
+  icon: "h-10 w-10 rounded-xl p-0",
 };
 
 function Spinner({ size = "md" }: { size?: ButtonSize }) {

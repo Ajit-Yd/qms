@@ -63,11 +63,11 @@ export function FilePanel({
   };
 
   return (
-    <div className="mt-5 rounded-xl border border-slate-200 bg-white p-3">
-      <div className="mb-2 text-sm font-semibold text-slate-700">{label}</div>
+    <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="mb-3 text-base font-semibold text-slate-800">{label}</div>
 
       {file.fileName ? (
-        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
           <a
             href={endpoint}
             target="_blank"
@@ -78,13 +78,13 @@ export function FilePanel({
             {file.fileName}
           </a>
           <span className="text-slate-400">{formatFileSize(file.fileSize)}</span>
-          <a href={endpoint} download={file.fileName} className="rounded-lg border border-slate-200 px-2 py-1 hover:bg-slate-50">
+          <a href={endpoint} download={file.fileName} className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-50">
             Download
           </a>
           {canWrite && (
             <>
               <Button variant="secondary" size="sm" disabled={busy} onClick={() => inputRef.current?.click()}>
-                Replace
+                Replace file
               </Button>
               <Button variant="outline" size="sm" disabled={busy} onClick={remove} className="border-red-200 text-red-600">
                 Remove
@@ -93,24 +93,24 @@ export function FilePanel({
           )}
         </div>
       ) : (
-        <div className="text-xs text-slate-500">No file attached.</div>
+        <div className="text-sm text-slate-500">No file attached.</div>
       )}
 
       {canWrite && !file.fileName && (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-3">
           <input
             ref={inputRef}
             type="file"
             aria-label={`${label} file`}
             onChange={upload}
-            className="text-xs text-slate-600 file:mr-2 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-700"
+            className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-700"
           />
         </div>
       )}
-      {!file.fileName && canWrite && <p className="mt-1 text-[11px] text-slate-400">Max {Math.floor(MAX_FILE_BYTES / 1024 / 1024)}MB · PDF, Word, Excel, images, archives</p>}
+      {!file.fileName && canWrite && <p className="mt-2 text-sm text-slate-400">Max {Math.floor(MAX_FILE_BYTES / 1024 / 1024)}MB · PDF, Word, Excel, images, archives</p>}
 
-      {busy && <p className="mt-1 text-[11px] text-slate-500">Working…</p>}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {busy && <p className="mt-2 text-sm text-slate-500">Working…</p>}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   );
 }

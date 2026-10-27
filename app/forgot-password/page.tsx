@@ -29,14 +29,20 @@ export default function ForgotPasswordPage() {
   return (
     <main className="min-h-screen bg-[#EEF2FA] p-4 sm:p-6 text-slate-800 dark:bg-[#0b1220] dark:text-slate-200">
       <div className="mx-auto flex w-full max-w-[92%] justify-end sm:max-w-md"><ThemeToggle /></div>
-      <form onSubmit={handleSubmit} className="animate-in mx-auto mt-4 max-w-[92%] sm:max-w-md rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800 sm:mt-8 sm:p-6 shadow-[0_8px_32px_rgba(16,24,40,0.08)]">
-        <h1 className="text-2xl font-bold text-slate-900">Reset password</h1>
-        <p className="mt-2 text-sm text-slate-600">Enter your organization and email and we will send reset instructions.</p>
-        <input required name="organization" aria-label="Organization" autoComplete="organization" className="mt-5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus:bg-white" />
-        <input required type="email" name="email" aria-label="Email" autoComplete="email" className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus:bg-white" />
-        <Button type="submit" variant="primary" size="lg" fullWidth className="mt-4" loading={loading} disabled={loading || sent}>Send instructions</Button>
-        {sent && <p className="mt-3 text-sm text-emerald-700">Instructions sent if the account exists. Check your email (or server logs in dev).</p>}
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      <form onSubmit={handleSubmit} className="animate-in mx-auto mt-4 max-w-[92%] sm:max-w-md rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800 sm:mt-8 sm:p-8 shadow-[0_8px_32px_rgba(16,24,40,0.08)]">
+        <h1 className="text-3xl font-bold text-slate-900">Reset password</h1>
+        <p className="mt-2 text-base text-slate-600">Enter your organization and email. We will send reset instructions to your inbox.</p>
+        <label className="mt-6 block">
+          <span className="mb-1.5 block font-medium text-slate-700">Organization</span>
+          <input required name="organization" aria-label="Organization" autoComplete="organization" placeholder="e.g. Aman PVT Ltd" className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base transition focus:bg-white focus:border-[#1D9E75]" />
+        </label>
+        <label className="mt-4 block">
+          <span className="mb-1.5 block font-medium text-slate-700">Email</span>
+          <input required type="email" name="email" aria-label="Email" autoComplete="email" placeholder="you@yourcompany.com" className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base transition focus:bg-white focus:border-[#1D9E75]" />
+        </label>
+        <Button type="submit" variant="primary" size="lg" fullWidth className="mt-6" loading={loading} disabled={loading || sent}>Send instructions</Button>
+        {sent && <p className="mt-4 text-base text-emerald-700">Instructions sent if the account exists. Check your email.</p>}
+        {error && <p className="mt-4 text-base text-red-600">{error}</p>}
       </form>
     </main>
   );

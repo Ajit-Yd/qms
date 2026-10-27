@@ -34,6 +34,8 @@ body {
     var(--background);
   color: var(--foreground);
   font-family: "Inter", "Segoe UI", sans-serif;
+  font-size: 16px;          /* larger base text for easier reading */
+  line-height: 1.6;         /* more breathing room between lines */
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -97,13 +99,24 @@ textarea {
   font: inherit;
 }
 
-/* Modern focus ring — delegated to Button component via ring utilities; fallback for native controls */
+/* Every interactive element is easy to tap and clearly shows keyboard focus. */
+button,
+a,
+input,
+select,
+textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+button:focus-visible,
+a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.18);
-  border-color: rgba(29, 158, 117, 0.4) !important;
+  box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.35);
+  border-color: rgba(29, 158, 117, 0.5) !important;
+  border-radius: 6px;
 }
 
 /* Subtle scrollbar */
@@ -212,7 +225,6 @@ textarea:focus-visible {
     min-height: 44px;
   }
 }
-/* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
   .animate-in {
     animation: none;

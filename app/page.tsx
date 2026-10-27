@@ -580,40 +580,41 @@ export default function Home({
           <div className="flex items-center gap-2 sm:gap-3 sm:justify-between lg:flex-col lg:items-center lg:justify-start lg:gap-6">
             <Link href="/" aria-label="Dashboard" className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-[#1E2530] text-lg font-extrabold shadow-sm transition hover:shadow-md active:scale-[0.98] sm:flex sm:h-11 sm:w-11 lg:flex">Q</Link>
             <Link href="/" aria-label="Dashboard" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#1E2530] text-base font-extrabold sm:hidden">Q</Link>
-            <nav className="flex flex-1 gap-1 overflow-x-auto scrollbar-none sm:gap-2 lg:mt-4 lg:flex-col lg:overflow-visible lg:gap-2">
+            <nav className="flex flex-1 gap-1 overflow-x-auto scrollbar-none sm:gap-2 lg:mt-4 lg:flex-col lg:overflow-visible lg:gap-2 lg:items-center">
               {moduleList.map((module) => (
                 <button
                   key={module.key}
                   type="button"
                   aria-label={module.label}
                   onClick={() => { setActiveModule(module.key); setPage(1); setApprovalOpen(false); setShowNewForm(false); setEditingRecordId(null); setSelectedRecordId(null); syncUrl(`/${modulePath(module.key)}`); }}
-                  className={`group flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-[11px] transition-all duration-200 sm:h-11 sm:w-11 sm:rounded-2xl ${
+                  className={`group flex flex-col items-center gap-1.5 shrink-0 rounded-xl border text-[11px] transition-all duration-200 sm:h-11 sm:w-11 sm:flex-row sm:gap-2 sm:px-3 sm:items-center lg:h-auto lg:w-auto lg:min-w-[72px] lg:py-2 lg:px-2.5 ${
                     activeModule === module.key
                       ? "bg-white text-[#1E2530] border-white shadow-md scale-[1.02]"
                       : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"
                   }`}
                   title={module.label}
                 >
-                  <ModuleIcon moduleKey={module.key} size="sm" />
+                  <ModuleIcon moduleKey={module.key} size={activeModule === module.key ? "md" : "sm"} />
+                  <span className="sm:hidden lg:block text-xs font-medium leading-tight">{module.label}</span>
                 </button>
               ))}
             </nav>
             <div className="flex shrink-0 items-center gap-2 lg:mt-auto lg:flex-col lg:gap-2">
-              <Link href="/admin/team" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
+              <Link href="/admin/team" className="flex h-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white lg:w-full lg:py-2">
                 Admin
               </Link>
-              <Link href="/tasks" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
-                Tasks
+              <Link href="/tasks" className="flex h-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white lg:w-full lg:py-2">
+                My tasks
               </Link>
-              <Link href="/meetings" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
+              <Link href="/meetings" className="flex h-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white lg:w-full lg:py-2">
                 Meetings
               </Link>
-              <Link href="/committees" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
+              <Link href="/committees" className="flex h-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white lg:w-full lg:py-2">
                 Teams
               </Link>
               {isPrimaryAdmin(viewerId, profiles) && (
-                <Link href="/admin/organizations" className="flex h-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-[11px] font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-9 sm:px-3 lg:w-full lg:py-1.5">
-                  Orgs
+                <Link href="/admin/organizations" className="flex h-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-sm font-semibold tracking-wide text-slate-200 transition hover:bg-white/10 hover:text-white lg:w-full lg:py-2">
+                  Organizations
                 </Link>
               )}
             </div>
@@ -625,8 +626,8 @@ export default function Home({
             {/* Row 1: Title + Bell/Avatar — always visible, compact on mobile */}
             <div className="flex items-center justify-between gap-2 p-3 sm:gap-3 sm:p-4">
               <div className="min-w-0 flex-1">
-                <p className="hidden text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:block sm:text-xs">Quality management system</p>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:hidden">QMS</p>
+                <p className="hidden text-sm font-semibold uppercase tracking-[0.12em] text-slate-500 sm:block">Quality management system</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500 sm:hidden">QMS</p>
                 <h1 className="mt-0.5 truncate text-[17px] font-bold leading-tight text-slate-900 sm:mt-1 sm:text-2xl">{dashboardRole === "top-authority" ? "Executive Dashboard" : dashboardRole === "staff" ? "My Dashboard" : "Team Dashboard"}</h1>
               </div>
               <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
@@ -635,7 +636,7 @@ export default function Home({
                   <select
                     value={viewerId}
                     disabled
-                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-base"
                     aria-label="Viewer"
                   >
                     {profiles.map((profile) => (
@@ -769,18 +770,18 @@ export default function Home({
 
           <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-3 dark:bg-slate-800 dark:border-slate-700 sm:mt-6 sm:p-4">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-base font-semibold text-slate-900 sm:text-lg">{moduleConfig[activeModule].label}</h2>
-              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">{moduleConfig[activeModule].label}</h2>
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <input
                   aria-label="Search records"
                   ref={searchInputRef}
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search all fields"
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm sm:w-auto"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base sm:w-auto"
                 />
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-                  <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+                <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+                  <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base">
                   <option value="all">All statuses</option>
                   <option value="open">Open</option>
                   {statusOptions.map((option: string) => (
@@ -788,7 +789,7 @@ export default function Home({
                   ))}
                 </select>
                 {activeModule !== "documents" && activeModule !== "training" && moduleSpecificOptions.length > 1 && (
-                  <select value={specificFilter} onChange={(event) => setSpecificFilter(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
+                  <select value={specificFilter} onChange={(event) => setSpecificFilter(event.target.value)} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base">
                     <option value="all">All filters</option>
                     {moduleSpecificOptions.map((option: string) => (
                       <option key={option} value={option}>{option}</option>
@@ -797,7 +798,7 @@ export default function Home({
                 )}
                 <Button
                   variant="secondary"
-                  size="md"
+                  size="lg"
                   onClick={() => {
                     setSearch("");
                     setStatusFilter("all");
@@ -808,7 +809,7 @@ export default function Home({
                 </Button>
                 <Button
                   variant="primary"
-                  size="md"
+                  size="lg"
                   disabled={!canCreateRecords(viewerId, profiles)}
                   title={!canCreateRecords(viewerId, profiles) ? "Monitor-only role cannot create records" : undefined}
                   onClick={() => {
@@ -881,33 +882,33 @@ export default function Home({
                       <StatusBadge status={String(currentRecord.status)} />
                     </div>
 
-                    <div className="space-y-2 text-sm text-slate-700">
-                      <div><span className="font-medium">Assigned:</span> {getProfileById(String(currentRecord.assignedTo), profiles)?.name}</div>
-                      {typeof currentRecord.source === "string" && currentRecord.source && <div><span className="font-medium">Source:</span> {String(currentRecord.source)}</div>}
-                      {typeof currentRecord.employee === "string" && currentRecord.employee && <div><span className="font-medium">Employee:</span> {getProfileById(String(currentRecord.employee), profiles)?.name ?? String(currentRecord.employee)}</div>}
-                      {typeof currentRecord.priority === "string" && currentRecord.priority && <div><span className="font-medium">Priority:</span> {String(currentRecord.priority)}</div>}
-                      {typeof currentRecord.severity === "string" && currentRecord.severity && <div><span className="font-medium">Severity:</span> {String(currentRecord.severity)}</div>}
-                      {typeof currentRecord.revision === "string" && currentRecord.revision && <div><span className="font-medium">Revision:</span> {String(currentRecord.revision)}</div>}
-                      {typeof currentRecord.dueDate === "string" && currentRecord.dueDate && <div><span className="font-medium">Due:</span> {formatISODate(String(currentRecord.dueDate))}</div>}
-                      {typeof currentRecord.date === "string" && currentRecord.date && <div><span className="font-medium">Date:</span> {formatISODate(String(currentRecord.date))}</div>}
+                    <div className="space-y-2 text-base text-slate-700">
+                      <div><span className="font-medium text-slate-900">Assigned:</span> {getProfileById(String(currentRecord.assignedTo), profiles)?.name}</div>
+                      {typeof currentRecord.source === "string" && currentRecord.source && <div><span className="font-medium text-slate-900">Source:</span> {String(currentRecord.source)}</div>}
+                      {typeof currentRecord.employee === "string" && currentRecord.employee && <div><span className="font-medium text-slate-900">Employee:</span> {getProfileById(String(currentRecord.employee), profiles)?.name ?? String(currentRecord.employee)}</div>}
+                      {typeof currentRecord.priority === "string" && currentRecord.priority && <div><span className="font-medium text-slate-900">Priority:</span> {String(currentRecord.priority)}</div>}
+                      {typeof currentRecord.severity === "string" && currentRecord.severity && <div><span className="font-medium text-slate-900">Severity:</span> {String(currentRecord.severity)}</div>}
+                      {typeof currentRecord.revision === "string" && currentRecord.revision && <div><span className="font-medium text-slate-900">Revision:</span> {String(currentRecord.revision)}</div>}
+                      {typeof currentRecord.dueDate === "string" && currentRecord.dueDate && <div><span className="font-medium text-slate-900">Due:</span> {formatISODate(String(currentRecord.dueDate))}</div>}
+                      {typeof currentRecord.date === "string" && currentRecord.date && <div><span className="font-medium text-slate-900">Date:</span> {formatISODate(String(currentRecord.date))}</div>}
                     </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="mt-4 flex flex-wrap gap-3">
                       {canSubmitOrUpdate(viewerId, String(currentRecord.assignedTo)) && (
-                        <Button variant="primary" size="md" onClick={() => handleWorkflow(activeModule, currentRecord.id, "submit", "Submitted for review.")}>Submit</Button>
+                        <Button variant="primary" size="lg" onClick={() => handleWorkflow(activeModule, currentRecord.id, "submit", "Submitted for review.")}>Submit for review</Button>
                       )}
                       {canSubmitOrUpdate(viewerId, String(currentRecord.assignedTo)) && (
-                        <Button variant="secondary" size="md" onClick={() => { setEditingRecordId(currentRecord.id); setShowNewForm(false); setApprovalOpen(false); syncUrl(`/${modulePath(activeModule)}/${currentRecord.id}/edit`); }}>Edit</Button>
+                        <Button variant="secondary" size="lg" onClick={() => { setEditingRecordId(currentRecord.id); setShowNewForm(false); setApprovalOpen(false); syncUrl(`/${modulePath(activeModule)}/${currentRecord.id}/edit`); }}>Edit record</Button>
                       )}
                       {canApproveOrRevise(viewerId, String(currentRecord.assignedTo), profiles) && (
                         <>
-                          <Button variant="success" size="md" onClick={() => handleWorkflow(activeModule, currentRecord.id, "approve", "Approved by manager.")}>Approve</Button>
-                          <Button variant="destructive" size="md" onClick={() => handleWorkflow(activeModule, currentRecord.id, "revise", "Revise and redirect per request.")}>Revise & Redirect</Button>
+                          <Button variant="success" size="lg" onClick={() => handleWorkflow(activeModule, currentRecord.id, "approve", "Approved by manager.")}>Approve</Button>
+                          <Button variant="destructive" size="lg" onClick={() => handleWorkflow(activeModule, currentRecord.id, "revise", "Revise and redirect per request.")}>Revise &amp; redirect</Button>
                         </>
                       )}
                       <Button
                         variant="outline"
-                        size="md"
+                        size="lg"
                         onClick={() => handleDeleteRecord(activeModule, currentRecord.id)}
                         className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:border-red-300 hover:text-red-800"
                       >
@@ -929,28 +930,28 @@ export default function Home({
                         onChange={() => void refetchRecord(activeModule, currentRecord.id)}
                       />
 
-                    <div className="mt-5 rounded-xl border border-slate-200 bg-white p-3">
-                      <div className="mb-2 text-sm font-semibold text-slate-700">History</div>
+                    <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+                      <div className="mb-3 text-base font-semibold text-slate-800">History</div>
                       <div className="space-y-2">
                         {recordHistory.length ? recordHistory.map((entry) => (
-                          <div key={entry.id} className="rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
-                            <div className="font-medium text-slate-700">{entry.fromStatus} → {entry.toStatus}</div>
-                            <div>{getProfileById(entry.changedBy, profiles)?.name ?? "System"} · {new Date(entry.timestamp).toISOString().slice(0, 10)}</div>
-                            <div>{entry.comment}</div>
+                          <div key={entry.id} className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
+                            <div className="font-medium text-slate-900">{entry.fromStatus} → {entry.toStatus}</div>
+                            <div className="mt-0.5">{getProfileById(entry.changedBy, profiles)?.name ?? "System"} · {new Date(entry.timestamp).toISOString().slice(0, 10)}</div>
+                            <div className="mt-1">{entry.comment}</div>
                           </div>
-                        )) : <div className="text-xs text-slate-500">No history yet.</div>}
+                        )) : <div className="text-sm text-slate-500">No history yet.</div>}
                       </div>
                     </div>
 
-                    <div className="mt-5 rounded-xl border border-slate-200 bg-white p-3">
-                      <div className="mb-2 text-sm font-semibold text-slate-700">Comments</div>
+                    <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
+                      <div className="mb-3 text-base font-semibold text-slate-800">Comments</div>
                       <div className="space-y-2">
                         {recordComments.length ? recordComments.map((comment) => (
-                          <div key={comment.id} className="rounded-lg bg-slate-50 p-2 text-xs text-slate-600">
-                            <div className="font-medium text-slate-700">{getProfileById(comment.author, profiles)?.name ?? comment.author}</div>
-                            <div>{comment.body}</div>
+                          <div key={comment.id} className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
+                            <div className="font-medium text-slate-900">{getProfileById(comment.author, profiles)?.name ?? comment.author}</div>
+                            <div className="mt-0.5">{comment.body}</div>
                           </div>
-                        )) : <div className="text-xs text-slate-500">No comments yet.</div>}
+                        )) : <div className="text-sm text-slate-500">No comments yet.</div>}
                       </div>
                       <textarea
                         aria-label="Add comment"
@@ -961,13 +962,14 @@ export default function Home({
                             (event.currentTarget as HTMLTextAreaElement).value = "";
                           }
                         }}
-                        placeholder="Add a comment and press Enter"
-                        className="mt-3 w-full rounded-xl border border-slate-200 bg-white p-2 text-sm"
+                        placeholder="Type a comment here and press Enter to save"
+                        className="mt-3 w-full rounded-xl border border-slate-200 bg-white p-3 text-base"
+                        rows={3}
                       />
                     </div>
                   </>
                 ) : (
-                  <div className="text-sm text-slate-500">No record selected.</div>
+                  <div className="text-base text-slate-500">No record selected.</div>
                 )}
               </div>
             </div>

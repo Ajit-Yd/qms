@@ -132,55 +132,55 @@ export function ApprovalPanel({
 
   return (
     <div className="fixed inset-x-3 bottom-3 z-50 flex max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-[420px] sm:max-w-[calc(100vw-2rem)]">
-      <div className="flex items-center gap-3 border-b border-slate-200 bg-[#EEF2FA] px-4 py-3">
+      <div className="flex items-center gap-3 border-b border-slate-200 bg-[#EEF2FA] px-5 py-3">
         <ModuleIcon moduleKey={moduleKey} />
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.1em] text-slate-500">{moduleConfig[moduleKey].label} · review</div>
-          <h3 className="truncate text-sm font-semibold text-slate-900">{record.title}</h3>
+          <div className="text-sm uppercase tracking-[0.1em] text-slate-500">{moduleConfig[moduleKey].label} · review</div>
+          <h3 className="mt-0.5 truncate text-base font-semibold text-slate-900">{record.title}</h3>
         </div>
         <StatusBadge status={String(record.status)} />
-        <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close review window" className="h-7 w-7 rounded-full">×</Button>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close review window">×</Button>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm text-slate-700">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg bg-slate-50 p-2">
-            <div className="text-[10px] uppercase tracking-wide text-slate-500">Assigned to</div>
-            <div className="font-medium text-slate-800">{assignee?.name ?? record.assignedTo}</div>
+      <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4 text-base text-slate-700">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-lg bg-slate-50 p-3">
+            <div className="text-sm uppercase tracking-wide text-slate-500">Assigned to</div>
+            <div className="mt-1 font-medium text-slate-900">{assignee?.name ?? record.assignedTo}</div>
           </div>
-          <div className="rounded-lg bg-slate-50 p-2">
-            <div className="text-[10px] uppercase tracking-wide text-slate-500">Email on send</div>
-            <div className="truncate font-medium text-slate-800">{assignee?.email ?? "—"}</div>
+          <div className="rounded-lg bg-slate-50 p-3">
+            <div className="text-sm uppercase tracking-wide text-slate-500">Email on send</div>
+            <div className="mt-1 truncate font-medium text-slate-900">{assignee?.email ?? "—"}</div>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
           {typeof record.priority === "string" && record.priority && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Priority: {record.priority}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">Priority: {record.priority}</span>
           )}
           {typeof record.severity === "string" && record.severity && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Severity: {record.severity}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">Severity: {record.severity}</span>
           )}
           {typeof record.revision === "string" && record.revision && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Revision: {record.revision}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">Revision: {record.revision}</span>
           )}
         </div>
-        <div className="rounded-lg border border-dashed border-slate-300 p-2 text-xs text-slate-600">
+        <div className="rounded-lg border border-dashed border-slate-300 p-3 text-sm text-slate-600">
           {canApprove ? (
-            <>Approving or rejecting emails <strong>{assignee?.email ?? "the assignee"}</strong> with the outcome and a link to the record.</>
+            <>Approving or rejecting sends an email to <strong>{assignee?.email ?? "the assignee"}</strong> with the outcome and a link to the record.</>
           ) : (
             <>You are the assignee of this record. Submit it for review to notify your manager.</>
           )}
         </div>
       </div>
 
-      <div className="border-t border-slate-200 px-4 py-3">
-        {message && <div className="mb-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700">{message}</div>}
-        <div className="flex flex-wrap gap-2">
+      <div className="border-t border-slate-200 px-5 py-4">
+        {message && <div className="mb-3 rounded-lg bg-slate-50 px-4 py-2.5 text-sm text-slate-700">{message}</div>}
+        <div className="flex flex-wrap gap-3">
           {canApprove && (
             <>
               <Button
                 variant="success"
-                size="md"
+                size="lg"
                 loading={pending === "approve"}
                 disabled={pending !== null || alreadyFinal}
                 onClick={() => void run("approve")}
@@ -190,7 +190,7 @@ export function ApprovalPanel({
               </Button>
               <Button
                 variant="destructive"
-                size="md"
+                size="lg"
                 loading={pending === "revise"}
                 disabled={pending !== null || alreadyFinal}
                 onClick={() => void run("revise")}
@@ -201,9 +201,9 @@ export function ApprovalPanel({
             </>
           )}
           {!canApprove && canEdit && (
-            <span className="flex-1 rounded-xl bg-slate-100 px-3 py-2 text-center text-sm text-slate-500">Review handles manager approval only.</span>
+            <span className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-center text-base text-slate-500">Manager approval only.</span>
           )}
-          <Link href={`/${modulePath(moduleKey)}/${record.id}`} className="inline-flex h-9 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300">
+          <Link href={`/${modulePath(moduleKey)}/${record.id}`} className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-base font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:border-slate-300">
             Open full record
           </Link>
         </div>
