@@ -14,7 +14,6 @@ import {
   type ModuleKey,
 } from "@/components/qms";
 import { Dashboard } from "@/components/dashboard";
-import { ApprovalPanel } from "@/components/approval-panel";
 import { FilePanel } from "@/components/file-panel";
 import {
   canApproveOrRevise,
@@ -147,7 +146,6 @@ export default function Home({
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") ?? "all");
   const [specificFilter, setSpecificFilter] = useState("all");
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(initialRecordId ?? searchParams.get("record"));
-  const [approvalOpen, setApprovalOpen] = useState(false);
   const [showNewForm, setShowNewForm] = useState(initialView === "new");
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -439,7 +437,6 @@ export default function Home({
         }));
         if (selectedRecordId === recordId) {
           setSelectedRecordId(null);
-          setApprovalOpen(false);
         }
       } else {
         const delMsg = await response.text();
@@ -586,7 +583,7 @@ export default function Home({
                   key={module.key}
                   type="button"
                   aria-label={module.label}
-                  onClick={() => { setActiveModule(module.key); setPage(1); setApprovalOpen(false); setShowNewForm(false); setEditingRecordId(null); setSelectedRecordId(null); syncUrl(`/${modulePath(module.key)}`); }}
+                  onClick={() => { setActiveModule(module.key); setPage(1); setShowNewForm(false); setEditingRecordId(null); setSelectedRecordId(null); syncUrl(`/${modulePath(module.key)}`); }}
                   className={`group flex flex-col items-center gap-1.5 shrink-0 rounded-xl border text-[11px] transition-all duration-200 sm:h-11 sm:w-11 sm:flex-row sm:gap-2 sm:px-3 sm:items-center lg:h-auto lg:w-auto lg:min-w-[72px] lg:py-2 lg:px-2.5 ${
                     activeModule === module.key
                       ? "bg-white text-[#1E2530] border-white shadow-md scale-[1.02]"
@@ -688,7 +685,6 @@ export default function Home({
                                   setShowNewForm(false);
                                   setEditingRecordId(null);
                                   setSelectedRecordId(match[2] ?? null);
-                                  setApprovalOpen(Boolean(match[2]));
                                   syncUrl(item.link);
                                 } else {
                                   router.push(item.link);
@@ -753,7 +749,6 @@ export default function Home({
             onModuleSelect={(m) => {
               setActiveModule(m);
               setPage(1);
-              setApprovalOpen(false);
               setShowNewForm(false);
               syncUrl(`/${modulePath(m)}`);
               setTimeout(() => document.querySelector('section.mt-4')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
@@ -762,7 +757,6 @@ export default function Home({
               const m = (r.module as ModuleKey) ?? activeModule;
               setActiveModule(m);
               setSelectedRecordId(String(r.id));
-              setApprovalOpen(true);
               setShowNewForm(false);
               syncUrl(`/${modulePath(m)}/${r.id}`);
             }}
@@ -820,7 +814,6 @@ export default function Home({
                     setShowNewForm(true);
                     setEditingRecordId(null);
                     setSelectedRecordId(null);
-                    setApprovalOpen(false);
                     syncUrl(`/${modulePath(activeModule)}/new`);
                   }}
                 >
@@ -846,7 +839,7 @@ export default function Home({
               <div>
                 <DataTable
                   rows={pagedRecords}
-                  onRowClick={(row) => { setSelectedRecordId(String(row.id)); setApprovalOpen(true); }}
+                  onRowClick={(row) => { setSelectedRecordId(String(row.id)); }}
                   onEdit={(row) => { setSelectedRecordId(String(row.id)); setEditingRecordId(String(row.id)); }}
                   onDelete={(row) => handleDeleteRecord(activeModule, String(row.id))}
                   onViewHistory={(row) => { setSelectedRecordId(String(row.id)); }}
@@ -898,7 +891,7 @@ export default function Home({
                         <Button variant="primary" size="lg" onClick={() => handleWorkflow(activeModule, currentRecord.id, "submit", "Submitted for review.")}>Submit for review</Button>
                       )}
                       {canSubmitOrUpdate(viewerId, String(currentRecord.assignedTo)) && (
-                        <Button variant="secondary" size="lg" onClick={() => { setEditingRecordId(currentRecord.id); setShowNewForm(false); setApprovalOpen(false); syncUrl(`/${modulePath(activeModule)}/${currentRecord.id}/edit`); }}>Edit record</Button>
+                        <Button variant="secondary" size="lg" onClick={() => { setEditingRecordId(currentRecord.id); setShowNewForm(false); syncUrl(`/${modulePath(activeModule)}/${currentRecord.id}/edit`); }}>Edit record</Button>
                       )}
                       {canApproveOrRevise(viewerId, String(currentRecord.assignedTo), profiles) && (
                         <>
@@ -976,25 +969,6 @@ export default function Home({
           </section>
         </main>
       </div>
-
-      {approvalOpen && currentRecord && (
-        <ApprovalPanel
-          moduleKey={activeModule}
-          record={currentRecord}
-          profiles={profiles}
-          viewerId={viewerId}
-          onClose={() => setApprovalOpen(false)}
-          onWorkflowDone={(updated, entry) => {
-            setRecords((prev) => ({
-              ...prev,
-              [activeModule]: (prev[activeModule] ?? []).map((item) =>
-                item.id === updated.id ? parseList(activeModule, { records: [updated] })[0] : item
-              ),
-            }));
-            setHistory((prev) => [entry, ...prev]);
-          }}
-        />
-      )}
     </div>
   );
 }

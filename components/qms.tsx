@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 export type ModuleKey =
@@ -110,26 +110,6 @@ export function DataTable<T extends Record<string, unknown>>({
   onDelete?: (row: T) => void;
   onViewHistory?: (row: T) => void;
 }) {
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (openMenuId === null) return;
-    const onDown = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpenMenuId(null);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpenMenuId(null);
-    };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [openMenuId]);
-
   if (!rows.length) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-base text-slate-500 text-center">
@@ -139,7 +119,7 @@ export function DataTable<T extends Record<string, unknown>>({
   }
 
   return (
-    <div ref={containerRef} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full text-left text-base text-slate-700">
           <thead className="bg-slate-50 text-slate-600">
@@ -170,7 +150,7 @@ export function DataTable<T extends Record<string, unknown>>({
                         variant="ghost"
                         size="sm"
                         aria-label={`Edit ${String(row.title ?? row.id ?? "record")}`}
-                        onClick={() => { onEdit?.(row); setOpenMenuId(null); }}
+                        onClick={() => { onEdit?.(row); }}
                         className="text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                       >
                         ✎ Edit
@@ -181,7 +161,7 @@ export function DataTable<T extends Record<string, unknown>>({
                         variant="ghost"
                         size="sm"
                         aria-label={`View history for ${String(row.title ?? row.id ?? "record")}`}
-                        onClick={() => { onViewHistory?.(row); setOpenMenuId(null); }}
+                        onClick={() => { onViewHistory?.(row); }}
                         className="text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                       >
                         ◷ History
@@ -192,34 +172,13 @@ export function DataTable<T extends Record<string, unknown>>({
                         variant="destructive"
                         size="sm"
                         aria-label={`Delete ${String(row.title ?? row.id ?? "record")}`}
-                        onClick={() => setDeleteConfirmId(String(row.id ?? JSON.stringify(row)))}
+                        onClick={() => onDelete?.(row)}
                         className="text-red-700 hover:text-red-900 hover:bg-red-50"
                       >
                         🗑 Delete
                       </Button>
                     )}
                   </div>
-                  {deleteConfirmId === String(row.id ?? JSON.stringify(row)) && (
-                    <div className="absolute right-2 top-14 z-10 w-48 rounded-xl border border-red-200 bg-white p-2 shadow-xl animate-in text-xs">
-                      <p className="mb-2 text-center text-slate-700">Delete this record?</p>
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => { setDeleteConfirmId(null); onDelete?.(row); }}
-                          className="flex-1 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
-                        >
-                          Yes, delete
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteConfirmId(null)}
-                          className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </td>
               </tr>
             ))}
@@ -249,7 +208,7 @@ export function DataTable<T extends Record<string, unknown>>({
                     variant="ghost"
                     size="sm"
                     aria-label={`Edit ${String(row.title ?? row.id ?? "record")}`}
-                    onClick={() => { onEdit?.(row); setOpenMenuId(null); }}
+                    onClick={() => { onEdit?.(row); }}
                     className="text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   >
                     ✎ Edit
@@ -260,7 +219,7 @@ export function DataTable<T extends Record<string, unknown>>({
                     variant="ghost"
                     size="sm"
                     aria-label={`View history for ${String(row.title ?? row.id ?? "record")}`}
-                    onClick={() => { onViewHistory?.(row); setOpenMenuId(null); }}
+                    onClick={() => { onViewHistory?.(row); }}
                     className="text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   >
                     ◷ History
@@ -271,34 +230,13 @@ export function DataTable<T extends Record<string, unknown>>({
                     variant="destructive"
                     size="sm"
                     aria-label={`Delete ${String(row.title ?? row.id ?? "record")}`}
-                    onClick={() => setDeleteConfirmId(String(row.id ?? JSON.stringify(row)))}
+                    onClick={() => onDelete?.(row)}
                     className="text-red-700 hover:text-red-900 hover:bg-red-50"
                   >
                     🗑 Delete
                   </Button>
                 )}
               </div>
-              {deleteConfirmId === String(row.id ?? JSON.stringify(row)) && (
-                <div className="absolute right-0 top-10 z-10 w-48 rounded-xl border border-red-200 bg-white p-2 shadow-xl animate-in text-xs">
-                  <p className="mb-2 text-center text-slate-700">Delete this record?</p>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => { setDeleteConfirmId(null); onDelete?.(row); }}
-                      className="flex-1 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
-                    >
-                      Yes, delete
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteConfirmId(null)}
-                      className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         ))}
